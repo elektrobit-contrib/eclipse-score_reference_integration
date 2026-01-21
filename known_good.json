@@ -143,6 +143,18 @@
             "score_process": {
                 "repo": "https://github.com/eclipse-score/process_description.git",
                 "hash": "fbe68f10041eb34fb791f08e31006afce8c9564a"
+            },
+            "score_devcontainer": {
+                "repo": "https://github.com/eclipse-score/devcontainer.git",
+                "hash": "559cc2c99e376f096cc44ef988bcc5ffa960d389"
+            },
+            "score_inc_someip_gateway": {
+                "repo": "https://github.com/eclipse-score/inc_someip_gateway.git",
+                "hash": "cb6c4abdd23cb4f3dd799d3f792272ebcf805a2e"
+            },
+            "score_score": {
+                "repo": "https://github.com/eclipse-score/score.git",
+                "hash": "78bc939e99a04d3cee4080b6d19d3dfb1c444f56"
             }
         }
     },
