@@ -8,6 +8,14 @@
             "repo": "https://github.com/eclipse-score/communication.git",
             "hash": "1d3e115e953de771cfb6c780cf677cf3fe5e8bee"
         },
+        "score_devcontainer": {
+            "repo": "https://github.com/eclipse-score/devcontainer.git",
+            "hash": "559cc2c99e376f096cc44ef988bcc5ffa960d389"
+        },
+        "score_inc_someip_gateway": {
+            "repo": "https://github.com/eclipse-score/inc_someip_gateway.git",
+            "hash": "cb6c4abdd23cb4f3dd799d3f792272ebcf805a2e"
+        },
         "score_logging": {
             "repo": "https://github.com/eclipse-score/logging.git",
             "hash": "cddfb10832cf384ee5c3f8553fb898f56c1d1def"
@@ -28,6 +36,10 @@
             "repo": "https://github.com/eclipse-score/feo.git",
             "hash": "4841281ab81aad114cfc86a19a69c029a274f28d",
             "branch": "candidate_v0.5"
+        },
+        "score_score": {
+            "repo": "https://github.com/eclipse-score/score.git",
+            "hash": "78bc939e99a04d3cee4080b6d19d3dfb1c444f56"
         },
         "score_tooling": {
             "repo": "https://github.com/eclipse-score/tooling.git",
