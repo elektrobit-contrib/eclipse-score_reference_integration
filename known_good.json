@@ -152,6 +152,10 @@
                 "repo": "https://github.com/eclipse-score/inc_someip_gateway.git",
                 "hash": "cb6c4abdd23cb4f3dd799d3f792272ebcf805a2e"
             },
+            "score_cicd-workflows": {
+                "repo": "https://github.com/eclipse-score/cicd-workflows.git",
+                "hash": "c28ac84cfb9b18531c26eba33fdc21346a58c87b"
+            },
             "score_score": {
                 "repo": "https://github.com/eclipse-score/score.git",
                 "hash": "78bc939e99a04d3cee4080b6d19d3dfb1c444f56"
