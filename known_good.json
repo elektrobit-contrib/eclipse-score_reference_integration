@@ -156,6 +156,10 @@
                 "repo": "https://github.com/eclipse-score/cicd-workflows.git",
                 "hash": "c28ac84cfb9b18531c26eba33fdc21346a58c87b"
             },
+            "score_module_template": {
+                "repo": "git@github.com:eclipse-score/module_template.git",
+                "hash": "bca97363dea985827cc8eee91b95cb7e46682a7a"
+            },
             "score_score": {
                 "repo": "https://github.com/eclipse-score/score.git",
                 "hash": "78bc939e99a04d3cee4080b6d19d3dfb1c444f56"
