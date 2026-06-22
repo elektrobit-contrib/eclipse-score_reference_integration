@@ -189,10 +189,6 @@
             "score_eclipsefdn": {
                 "repo": "https://github.com/eclipse-score/.eclipsefdn.git",
                 "hash": "db922c34c6558e404d5977c1d012779edaf97559"
-            },
-            "score_score": {
-                "repo": "https://github.com/eclipse-score/score.git",
-                "hash": "78bc939e99a04d3cee4080b6d19d3dfb1c444f56"
             }
         }
     },
