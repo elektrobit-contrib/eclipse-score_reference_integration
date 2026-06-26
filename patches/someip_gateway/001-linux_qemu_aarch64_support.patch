@@ -1,17 +1,155 @@
+diff --git a/quality/integration_testing/plugins/linux_qemu/__init__.py b/quality/integration_testing/plugins/linux_qemu/__init__.py
+index 128b280..e9a1e2d 100644
+--- a/quality/integration_testing/plugins/linux_qemu/__init__.py
++++ b/quality/integration_testing/plugins/linux_qemu/__init__.py
+@@ -100,6 +100,12 @@ def pytest_addoption(parser):
+         required=True,
+         help="Path to a QEMU disk image (qcow2).",
+     )
++    parser.addoption(
++        "--qemu-kernel",
++        action="store",
++        default=None,
++        help="Path to a Linux kernel image for booting raw aarch64 disk images.",
++    )
+     parser.addoption(
+         "--qemu-seed-iso",
+         action="store",
+@@ -126,6 +132,9 @@ def config(request):
+     qemu_seed_iso = request.config.getoption("qemu_seed_iso")
+     if qemu_seed_iso:
+         qemu_seed_iso = os.path.abspath(qemu_seed_iso)
++    qemu_kernel = request.config.getoption("qemu_kernel")
++    if qemu_kernel:
++        qemu_kernel = os.path.abspath(qemu_kernel)
+ 
+     return Bunch(
+         qemu_config=load_configuration(
+@@ -133,6 +142,7 @@ def config(request):
+         ),
+         qemu_image=qemu_image,
+         qemu_seed_iso=qemu_seed_iso,
++        qemu_kernel=qemu_kernel,
+     )
+ 
+ 
+@@ -156,7 +166,7 @@ def target_init(config, request, dlt):
+                 "-b",
+                 base_image,
+                 "-F",
+-                "qcow2",
++                "raw" if base_image.endswith(".wic") else "qcow2",
+                 overlay_path,
+             ],
+             check=True,
+@@ -171,6 +181,7 @@ def target_init(config, request, dlt):
+             network_adapters=[adapter.name for adapter in config.qemu_config.networks],
+             port_forwarding=config.qemu_config.port_forwarding,
+             seed_iso=config.qemu_seed_iso,
++            path_to_qemu_kernel=config.qemu_kernel,
+         )
+ 
+         with process:
 diff --git a/quality/integration_testing/plugins/linux_qemu/qemu.py b/quality/integration_testing/plugins/linux_qemu/qemu.py
+index cb4b9e4..5ffe9cd 100644
 --- a/quality/integration_testing/plugins/linux_qemu/qemu.py
 +++ b/quality/integration_testing/plugins/linux_qemu/qemu.py
-@@ -38,7 +38,7 @@ class DiskBootQemu:
-     def __init__(
-         self,
-         path_to_image,
+@@ -39,16 +39,27 @@ class DiskBootQemu:
          ram="1G",
          cores="2",
          seed_iso=None,
 -        cpu="Cascadelake-Server-v5",
-+        cpu="cortex-a72",
++        cpu="cortex-a53",
++        path_to_kernel=None,
          network_adapters=None,
          port_forwarding=None,
      ):
 -        self._qemu_path = "/usr/bin/qemu-system-x86_64"
 +        self._qemu_path = "/usr/bin/qemu-system-aarch64"
+         self._path_to_image = path_to_image
++        self._path_to_kernel = path_to_kernel
+         self._ram = ram
+         self._cores = cores
+         self._seed_iso = seed_iso
+         self._cpu = cpu
++
++        image_lower = path_to_image.lower()
++        if image_lower.endswith(".wic") or image_lower.endswith(".img"):
++            self._disk_format = "raw"
++        else:
++            self._disk_format = "qcow2"
++
++        # EBcLfSA images require an explicit kernel when booting the raw .wic disk.
++        self._use_kernel_boot = path_to_kernel is not None
+         self._network_adapters = network_adapters or []
+         self._port_forwarding = port_forwarding or []
+ 
+@@ -126,10 +137,30 @@ class DiskBootQemu:
+             self._cpu,
+             "-m",
+             self._ram,
+-            "-drive",
+-            f"file={image_path},format=qcow2,if=virtio",
+         ]
+ 
++        if self._use_kernel_boot:
++            kernel_path = os.path.abspath(self._path_to_kernel)
++            cmd.extend(
++                [
++                    "-machine",
++                    "virt,virtualization=true,gic-version=3",
++                    "-kernel",
++                    kernel_path,
++                    "-device",
++                    "virtio-blk-device,drive=vd0",
++                    "-drive",
++                    f"if=none,format={self._disk_format},file={image_path},id=vd0",
++                ]
++            )
++        else:
++            cmd.extend(
++                [
++                    "-drive",
++                    f"file={image_path},format={self._disk_format},if=virtio",
++                ]
++            )
++
+         cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
+ 
+         if self._seed_iso:
+@@ -178,13 +209,14 @@ class DiskBootQemu:
+ 
+     def _port_forwarding_args(self):
+         result = []
++        netdev = "virtio-net-device" if self._use_kernel_boot else "virtio-net-pci"
+         for idx, forwarding in enumerate(self._port_forwarding, start=1):
+             result.extend(
+                 [
+                     "-netdev",
+                     f"user,id=net{idx},hostfwd=tcp::{forwarding.host_port}-:{forwarding.guest_port}",
+                     "-device",
+-                    f"virtio-net-pci,netdev=net{idx}",
++                    f"{netdev},netdev=net{idx}",
+                 ]
+             )
+         return result
+diff --git a/quality/integration_testing/plugins/linux_qemu/qemu_process.py b/quality/integration_testing/plugins/linux_qemu/qemu_process.py
+index 20fcc0b..808a27b 100644
+--- a/quality/integration_testing/plugins/linux_qemu/qemu_process.py
++++ b/quality/integration_testing/plugins/linux_qemu/qemu_process.py
+@@ -32,6 +32,7 @@ class LinuxQemuProcess:
+         network_adapters=None,
+         port_forwarding=None,
+         seed_iso=None,
++        path_to_qemu_kernel=None,
+     ):
+         self._path_to_qemu_image = path_to_qemu_image
+         self._available_ram = available_ram
+@@ -43,6 +44,7 @@ class LinuxQemuProcess:
+             self._available_ram,
+             self._available_cores,
+             seed_iso=seed_iso,
++            path_to_kernel=path_to_qemu_kernel,
+             network_adapters=self._network_adapters,
+             port_forwarding=self._port_forwarding,
+         )
