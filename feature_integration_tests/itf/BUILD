@@ -88,6 +88,32 @@ py_itf_test(
     ],
 )
 
+py_itf_test(
+    name = "itf_linux_qemu",
+    srcs = [
+        ":all_tests",
+    ],
+    args = [
+        "--dlt-config=$(location //feature_integration_tests/configs:dlt_config_x86_64.json)",
+        "--qemu-config=$(location //feature_integration_tests/configs:qemu_bridge_config.json)",
+        "--qemu-image=$(location //images/ebclfsa_aarch64:image)",
+        "--qemu-filesystem-tar=$(location //showcases:showcases_pkg_tar)",
+    ],
+    data = [
+        "//feature_integration_tests/configs:dlt_config_x86_64.json",
+        "//feature_integration_tests/configs:qemu_bridge_config.json",
+        "//showcases:showcases_pkg_tar",
+        "//images/ebclfsa_aarch64:image",
+    ],
+    plugins = [
+        "@score_itf//score/itf/plugins:dlt_plugin",
+        "@score_someip_gateway//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
+    ],
+    tags = [
+        "manual",
+    ],
+)
+
 # Backward compatible aliases for CI jobs - these should be removed once the CI jobs are updated to use the new target names
 test_suite(
     name = "linux_x86_64",

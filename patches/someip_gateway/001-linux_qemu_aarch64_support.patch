@@ -1,0 +1,17 @@
+diff --git a/quality/integration_testing/plugins/linux_qemu/qemu.py b/quality/integration_testing/plugins/linux_qemu/qemu.py
+--- a/quality/integration_testing/plugins/linux_qemu/qemu.py
++++ b/quality/integration_testing/plugins/linux_qemu/qemu.py
+@@ -38,7 +38,7 @@ class DiskBootQemu:
+     def __init__(
+         self,
+         path_to_image,
+         ram="1G",
+         cores="2",
+         seed_iso=None,
+-        cpu="Cascadelake-Server-v5",
++        cpu="cortex-a72",
+         network_adapters=None,
+         port_forwarding=None,
+     ):
+-        self._qemu_path = "/usr/bin/qemu-system-x86_64"
++        self._qemu_path = "/usr/bin/qemu-system-aarch64"
