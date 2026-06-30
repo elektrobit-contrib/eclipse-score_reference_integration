@@ -1,5 +1,5 @@
 diff --git a/quality/integration_testing/plugins/linux_qemu/__init__.py b/quality/integration_testing/plugins/linux_qemu/__init__.py
-index 128b280..e9a1e2d 100644
+index 128b280c..ccc83d06 100644
 --- a/quality/integration_testing/plugins/linux_qemu/__init__.py
 +++ b/quality/integration_testing/plugins/linux_qemu/__init__.py
 @@ -100,6 +100,18 @@ def pytest_addoption(parser):
@@ -21,7 +21,7 @@ index 128b280..e9a1e2d 100644
      parser.addoption(
          "--qemu-seed-iso",
          action="store",
-@@ -126,6 +132,10 @@ def config(request):
+@@ -126,6 +138,10 @@ def config(request):
      qemu_seed_iso = request.config.getoption("qemu_seed_iso")
      if qemu_seed_iso:
          qemu_seed_iso = os.path.abspath(qemu_seed_iso)
@@ -32,7 +32,7 @@ index 128b280..e9a1e2d 100644
  
      return Bunch(
          qemu_config=load_configuration(
-@@ -133,6 +142,8 @@ def config(request):
+@@ -133,6 +149,8 @@ def config(request):
          ),
          qemu_image=qemu_image,
          qemu_seed_iso=qemu_seed_iso,
@@ -41,7 +41,7 @@ index 128b280..e9a1e2d 100644
      )
  
  
-@@ -156,7 +166,7 @@ def target_init(config, request, dlt):
+@@ -156,7 +174,7 @@ def target_init(config, request, dlt):
                  "-b",
                  base_image,
                  "-F",
@@ -50,7 +50,7 @@ index 128b280..e9a1e2d 100644
                  overlay_path,
              ],
              check=True,
-@@ -171,6 +181,8 @@ def target_init(config, request, dlt):
+@@ -171,6 +189,8 @@ def target_init(config, request, dlt):
              network_adapters=[adapter.name for adapter in config.qemu_config.networks],
              port_forwarding=config.qemu_config.port_forwarding,
              seed_iso=config.qemu_seed_iso,
@@ -60,17 +60,18 @@ index 128b280..e9a1e2d 100644
  
          with process:
 diff --git a/quality/integration_testing/plugins/linux_qemu/qemu.py b/quality/integration_testing/plugins/linux_qemu/qemu.py
-index cb4b9e4..5ffe9cd 100644
+index cb4b9e4e..7a6ee374 100644
 --- a/quality/integration_testing/plugins/linux_qemu/qemu.py
 +++ b/quality/integration_testing/plugins/linux_qemu/qemu.py
-@@ -20,5 +20,6 @@ import logging
+@@ -21,6 +21,7 @@ import logging
  import os
  import subprocess
  import sys
 +import platform
  from subprocess import TimeoutExpired
  
-@@ -39,16 +40,29 @@ class DiskBootQemu:
+ logger = logging.getLogger(__name__)
+@@ -39,21 +40,39 @@ class DiskBootQemu:
          ram="1G",
          cores="2",
          seed_iso=None,
@@ -102,17 +103,17 @@ index cb4b9e4..5ffe9cd 100644
          self._network_adapters = network_adapters or []
          self._port_forwarding = port_forwarding or []
  
-@@ -56,6 +68,9 @@ class DiskBootQemu:
          self._check_qemu_is_installed()
          self._find_available_kvm_support()
 +        if platform.machine() != "aarch64":
-+            logger.warning("Cross-architecture emulation; KVM unavailable, using TCG accelerator.")
++            logger.warning(
++                "Cross-architecture emulation; KVM unavailable, using TCG accelerator."
++            )
 +            self._accelerator = "tcg"
          self._check_kvm_readable_when_necessary()
  
          self._subprocess = None
- 
-@@ -126,10 +141,32 @@ class DiskBootQemu:
+@@ -126,10 +145,32 @@ class DiskBootQemu:
              self._cpu,
              "-m",
              self._ram,
@@ -147,26 +148,33 @@ index cb4b9e4..5ffe9cd 100644
          cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
  
          if self._seed_iso:
-@@ -165,8 +202,12 @@ class DiskBootQemu:
+@@ -148,8 +189,12 @@ class DiskBootQemu:
          cmd.extend(
              [
                  "-nographic",
--                "-serial",
--                "mon:stdio",
 +                "-chardev",
 +                "stdio,id=char0,signal=on,mux=on",
 +                "-mon",
 +                "chardev=char0,mode=readline",
-+                "-serial",
+                 "-serial",
+-                "mon:stdio",
 +                "chardev:char0",
                  "-object",
                  "rng-random,filename=/dev/urandom,id=rng0",
                  "-device",
-@@ -178,13 +213,14 @@ class DiskBootQemu:
+@@ -171,20 +216,21 @@ class DiskBootQemu:
+                         "-netdev",
+                         f"tap,id=t{idx},ifname={adapter},script=no,downscript=no",
+                         "-device",
+-                        f"virtio-net-pci,netdev=t{idx},id=nic{idx},guest_csum=off",
++                        f"virtio-net-pci,netdev=t{idx},id=nic{idx},guest_csum=off",
+                     ]
+                 )
+         return result
  
      def _port_forwarding_args(self):
          result = []
-+        netdev = "virtio-net-device" if self._use_kernel_boot else "virtio-net-pci"
++        netdev = "virtio-net-device"  # if self._use_kernel_boot else "virtio-net-pci"
          for idx, forwarding in enumerate(self._port_forwarding, start=1):
              result.extend(
                  [
@@ -179,7 +187,7 @@ index cb4b9e4..5ffe9cd 100644
              )
          return result
 diff --git a/quality/integration_testing/plugins/linux_qemu/qemu_process.py b/quality/integration_testing/plugins/linux_qemu/qemu_process.py
-index 20fcc0b..808a27b 100644
+index 20fcc0bf..9ddebcc8 100644
 --- a/quality/integration_testing/plugins/linux_qemu/qemu_process.py
 +++ b/quality/integration_testing/plugins/linux_qemu/qemu_process.py
 @@ -32,6 +32,8 @@ class LinuxQemuProcess:
@@ -191,7 +199,7 @@ index 20fcc0b..808a27b 100644
      ):
          self._path_to_qemu_image = path_to_qemu_image
          self._available_ram = available_ram
-@@ -43,6 +44,8 @@ class LinuxQemuProcess:
+@@ -43,6 +45,8 @@ class LinuxQemuProcess:
              self._available_ram,
              self._available_cores,
              seed_iso=seed_iso,
