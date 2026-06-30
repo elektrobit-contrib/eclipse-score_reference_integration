@@ -71,11 +71,21 @@ genrule(
     ],
 )
 
+pkg_tar(
+    name = "network_config_tar",
+    srcs = [
+        "//images/ebclfsa_aarch64/build/config-overlay:etc/config/network/network",
+    ],
+    mode = "0755",
+    package_dir = "/etc/config/network",
+)
+
 genrule(
     name = "itf-image",
     srcs = [
         "//feature_integration_tests/configs:etc_configs",
         ":extract-fastdev-image",
+        ":network_config_tar",
         "build_image.sh",
     ],
     outs = [
@@ -87,6 +97,7 @@ genrule(
             $(RULEDIR) \
             $(RULEDIR)/ebcl-qemuarm64 \
             $(RULEDIR)/ebcl-qemuarm64-itf \
+            $(location :network_config_tar) \
     ",
     visibility = [
         "//visibility:public",
