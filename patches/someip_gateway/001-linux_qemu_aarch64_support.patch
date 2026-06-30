@@ -54,7 +54,14 @@ diff --git a/quality/integration_testing/plugins/linux_qemu/qemu.py b/quality/in
 index cb4b9e4..5ffe9cd 100644
 --- a/quality/integration_testing/plugins/linux_qemu/qemu.py
 +++ b/quality/integration_testing/plugins/linux_qemu/qemu.py
-@@ -39,16 +39,27 @@ class DiskBootQemu:
+@@ -20,5 +20,6 @@ import logging
+ import os
+ import subprocess
+ import sys
++import platform
+ from subprocess import TimeoutExpired
+ 
+@@ -39,16 +40,27 @@ class DiskBootQemu:
          ram="1G",
          cores="2",
          seed_iso=None,
@@ -84,7 +91,17 @@ index cb4b9e4..5ffe9cd 100644
          self._network_adapters = network_adapters or []
          self._port_forwarding = port_forwarding or []
  
-@@ -126,10 +137,30 @@ class DiskBootQemu:
+@@ -56,6 +68,9 @@ class DiskBootQemu:
+         self._check_qemu_is_installed()
+         self._find_available_kvm_support()
++        if platform.machine() != "aarch64":
++            logger.warning("Cross-architecture emulation; KVM unavailable, using TCG accelerator.")
++            self._accelerator = "tcg"
+         self._check_kvm_readable_when_necessary()
+ 
+         self._subprocess = None
+ 
+@@ -126,10 +141,30 @@ class DiskBootQemu:
              self._cpu,
              "-m",
              self._ram,
@@ -117,7 +134,7 @@ index cb4b9e4..5ffe9cd 100644
          cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
  
          if self._seed_iso:
-@@ -178,13 +209,14 @@ class DiskBootQemu:
+@@ -178,13 +213,14 @@ class DiskBootQemu:
  
      def _port_forwarding_args(self):
          result = []
