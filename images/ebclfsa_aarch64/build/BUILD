@@ -70,3 +70,25 @@ genrule(
         "//visibility:public",
     ],
 )
+
+genrule(
+    name = "itf-image",
+    srcs = [
+        "//feature_integration_tests/configs:etc_configs",
+        ":extract-fastdev-image",
+        "build_image.sh",
+    ],
+    outs = [
+        "ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+        "ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
+    ],
+    cmd = " \
+        $(location build_image.sh) \
+            $(RULEDIR) \
+            $(RULEDIR)/ebcl-qemuarm64 \
+            $(RULEDIR)/ebcl-qemuarm64-itf \
+    ",
+    visibility = [
+        "//visibility:public",
+    ],
+)

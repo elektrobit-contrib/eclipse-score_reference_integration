@@ -96,16 +96,16 @@ py_itf_test(
     args = [
         "--dlt-config=$(location //feature_integration_tests/configs:dlt_config_x86_64.json)",
         "--qemu-config=$(location //feature_integration_tests/configs:qemu_bridge_config.json)",
-        "--qemu-image=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-deployed/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic)",
-        "--qemu-kernel=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-deployed/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux)",
+        "--qemu-image=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic)",
+        "--qemu-kernel=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux)",
         "--qemu-filesystem-tar=$(location //showcases:showcases_pkg_tar)",
     ],
     data = [
         "//feature_integration_tests/configs:dlt_config_x86_64.json",
         "//feature_integration_tests/configs:qemu_bridge_config.json",
         "//showcases:showcases_pkg_tar",
-        "//images/ebclfsa_aarch64/build:ebcl-qemuarm64-deployed/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
-        "//images/ebclfsa_aarch64/build:ebcl-qemuarm64-deployed/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
+        "//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+        "//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
     ],
     plugins = [
         "@score_itf//score/itf/plugins:dlt_plugin",
