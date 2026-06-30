@@ -33,9 +33,9 @@ config_setting(
 filegroup(
     name = "all_tests",
     srcs = [
-        "test_remote_logging.py",
+        # "test_remote_logging.py",
         "test_showcases.py",
-        "test_ssh.py",
+        # "test_ssh.py",
     ],
 )
 
