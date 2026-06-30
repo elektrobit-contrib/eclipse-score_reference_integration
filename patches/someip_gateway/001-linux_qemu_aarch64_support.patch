@@ -2,7 +2,7 @@ diff --git a/quality/integration_testing/plugins/linux_qemu/__init__.py b/qualit
 index 128b280..e9a1e2d 100644
 --- a/quality/integration_testing/plugins/linux_qemu/__init__.py
 +++ b/quality/integration_testing/plugins/linux_qemu/__init__.py
-@@ -100,6 +100,12 @@ def pytest_addoption(parser):
+@@ -100,6 +100,18 @@ def pytest_addoption(parser):
          required=True,
          help="Path to a QEMU disk image (qcow2).",
      )
@@ -12,24 +12,32 @@ index 128b280..e9a1e2d 100644
 +        default=None,
 +        help="Path to a Linux kernel image for booting raw aarch64 disk images.",
 +    )
++    parser.addoption(
++        "--qemu-kernel-cmdline",
++        action="store",
++        default="root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit",
++        help="Kernel command line used when --qemu-kernel is provided.",
++    )
      parser.addoption(
          "--qemu-seed-iso",
          action="store",
-@@ -126,6 +132,9 @@ def config(request):
+@@ -126,6 +132,10 @@ def config(request):
      qemu_seed_iso = request.config.getoption("qemu_seed_iso")
      if qemu_seed_iso:
          qemu_seed_iso = os.path.abspath(qemu_seed_iso)
 +    qemu_kernel = request.config.getoption("qemu_kernel")
 +    if qemu_kernel:
 +        qemu_kernel = os.path.abspath(qemu_kernel)
++    qemu_kernel_cmdline = request.config.getoption("qemu_kernel_cmdline")
  
      return Bunch(
          qemu_config=load_configuration(
-@@ -133,6 +142,7 @@ def config(request):
+@@ -133,6 +142,8 @@ def config(request):
          ),
          qemu_image=qemu_image,
          qemu_seed_iso=qemu_seed_iso,
 +        qemu_kernel=qemu_kernel,
++        qemu_kernel_cmdline=qemu_kernel_cmdline,
      )
  
  
@@ -42,11 +50,12 @@ index 128b280..e9a1e2d 100644
                  overlay_path,
              ],
              check=True,
-@@ -171,6 +181,7 @@ def target_init(config, request, dlt):
+@@ -171,6 +181,8 @@ def target_init(config, request, dlt):
              network_adapters=[adapter.name for adapter in config.qemu_config.networks],
              port_forwarding=config.qemu_config.port_forwarding,
              seed_iso=config.qemu_seed_iso,
 +            path_to_qemu_kernel=config.qemu_kernel,
++            qemu_kernel_cmdline=config.qemu_kernel_cmdline,
          )
  
          with process:
@@ -61,13 +70,14 @@ index cb4b9e4..5ffe9cd 100644
 +import platform
  from subprocess import TimeoutExpired
  
-@@ -39,16 +40,27 @@ class DiskBootQemu:
+@@ -39,16 +40,29 @@ class DiskBootQemu:
          ram="1G",
          cores="2",
          seed_iso=None,
 -        cpu="Cascadelake-Server-v5",
 +        cpu="cortex-a53",
 +        path_to_kernel=None,
++        kernel_cmdline="root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit",
          network_adapters=None,
          port_forwarding=None,
      ):
@@ -79,6 +89,7 @@ index cb4b9e4..5ffe9cd 100644
          self._cores = cores
          self._seed_iso = seed_iso
          self._cpu = cpu
++        self._kernel_cmdline = kernel_cmdline
 +
 +        image_lower = path_to_image.lower()
 +        if image_lower.endswith(".wic") or image_lower.endswith(".img"):
@@ -101,7 +112,7 @@ index cb4b9e4..5ffe9cd 100644
  
          self._subprocess = None
  
-@@ -126,10 +141,30 @@ class DiskBootQemu:
+@@ -126,10 +141,32 @@ class DiskBootQemu:
              self._cpu,
              "-m",
              self._ram,
@@ -117,6 +128,8 @@ index cb4b9e4..5ffe9cd 100644
 +                    "virt,virtualization=true,gic-version=3",
 +                    "-kernel",
 +                    kernel_path,
++                    "-append",
++                    self._kernel_cmdline,
 +                    "-device",
 +                    "virtio-blk-device,drive=vd0",
 +                    "-drive",
@@ -134,6 +147,21 @@ index cb4b9e4..5ffe9cd 100644
          cmd += ["-enable-kvm"] if self._accelerator == "kvm" else ["-accel", "tcg"]
  
          if self._seed_iso:
+@@ -165,8 +202,12 @@ class DiskBootQemu:
+         cmd.extend(
+             [
+                 "-nographic",
+-                "-serial",
+-                "mon:stdio",
++                "-chardev",
++                "stdio,id=char0,signal=on,mux=on",
++                "-mon",
++                "chardev=char0,mode=readline",
++                "-serial",
++                "chardev:char0",
+                 "-object",
+                 "rng-random,filename=/dev/urandom,id=rng0",
+                 "-device",
 @@ -178,13 +213,14 @@ class DiskBootQemu:
  
      def _port_forwarding_args(self):
@@ -154,19 +182,21 @@ diff --git a/quality/integration_testing/plugins/linux_qemu/qemu_process.py b/qu
 index 20fcc0b..808a27b 100644
 --- a/quality/integration_testing/plugins/linux_qemu/qemu_process.py
 +++ b/quality/integration_testing/plugins/linux_qemu/qemu_process.py
-@@ -32,6 +32,7 @@ class LinuxQemuProcess:
+@@ -32,6 +32,8 @@ class LinuxQemuProcess:
          network_adapters=None,
          port_forwarding=None,
          seed_iso=None,
 +        path_to_qemu_kernel=None,
++        qemu_kernel_cmdline=None,
      ):
          self._path_to_qemu_image = path_to_qemu_image
          self._available_ram = available_ram
-@@ -43,6 +44,7 @@ class LinuxQemuProcess:
+@@ -43,6 +44,8 @@ class LinuxQemuProcess:
              self._available_ram,
              self._available_cores,
              seed_iso=seed_iso,
 +            path_to_kernel=path_to_qemu_kernel,
++            kernel_cmdline=qemu_kernel_cmdline,
              network_adapters=self._network_adapters,
              port_forwarding=self._port_forwarding,
          )
