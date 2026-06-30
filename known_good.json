@@ -135,6 +135,14 @@
                 "repo": "https://github.com/eclipse-score/itf.git",
                 "hash": "bf5294d7618e361c224edbd754060cee810285eb"
             },
+            "score_someip_gateway": {
+                "repo": "https://github.com/eclipse-score/inc_someip_gateway.git",
+                "hash": "a6e3b62225a0e409da6997914f223279bb3506ba",
+                "bazel_patches": [
+                    "//patches/someip_gateway:001-linux_qemu_aarch64_support.patch",
+                    "//patches/someip_gateway:score_someip_gateway_make_itf_non_dev_dependency.patch"
+                ]
+            },
             "score_tooling": {
                 "repo": "https://github.com/eclipse-score/tooling.git",
                 "hash": "1159dcf9d35981ac4877265eff7a1e7a24452161"

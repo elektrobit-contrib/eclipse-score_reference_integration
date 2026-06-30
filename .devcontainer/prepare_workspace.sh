@@ -17,6 +17,9 @@ set -euo pipefail
 sudo apt update
 sudo apt install -y pipx
 
+# Install dependencies for ITF tests
+sudo apt-get install -y qemu-system-x86 iputils-ping tcpdump cloud-image-utils
+
 # Install gita
 pipx ensurepath
 pipx install gita

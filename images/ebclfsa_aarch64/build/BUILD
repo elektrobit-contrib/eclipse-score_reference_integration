@@ -70,3 +70,36 @@ genrule(
         "//visibility:public",
     ],
 )
+
+pkg_tar(
+    name = "network_config_tar",
+    srcs = [
+        "//images/ebclfsa_aarch64/build/config-overlay:etc/config/network/network",
+    ],
+    mode = "0755",
+    package_dir = "/etc/config/network",
+)
+
+genrule(
+    name = "itf-image",
+    srcs = [
+        "//feature_integration_tests/configs:etc_configs",
+        ":extract-fastdev-image",
+        ":network_config_tar",
+        "build_image.sh",
+    ],
+    outs = [
+        "ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+        "ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
+    ],
+    cmd = " \
+        $(location build_image.sh) \
+            $(RULEDIR) \
+            $(RULEDIR)/ebcl-qemuarm64 \
+            $(RULEDIR)/ebcl-qemuarm64-itf \
+            $(location :network_config_tar) \
+    ",
+    visibility = [
+        "//visibility:public",
+    ],
+)

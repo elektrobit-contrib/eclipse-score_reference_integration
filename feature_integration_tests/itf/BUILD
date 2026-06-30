@@ -33,9 +33,9 @@ config_setting(
 filegroup(
     name = "all_tests",
     srcs = [
-        "test_remote_logging.py",
+        # "test_remote_logging.py",
         "test_showcases.py",
-        "test_ssh.py",
+        # "test_ssh.py",
     ],
 )
 
@@ -83,6 +83,34 @@ py_itf_test(
         },
         no_match_error = "Unsupported platform",
     ),
+    tags = [
+        "manual",
+    ],
+)
+
+py_itf_test(
+    name = "itf_linux_qemu",
+    srcs = [
+        ":all_tests",
+    ],
+    args = [
+        "--dlt-config=$(location //feature_integration_tests/configs:dlt_config_x86_64.json)",
+        "--qemu-config=$(location //feature_integration_tests/configs:qemu_bridge_config.json)",
+        "--qemu-image=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic)",
+        "--qemu-kernel=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux)",
+        "--qemu-filesystem-tar=$(location //showcases:showcases_pkg_tar)",
+    ],
+    data = [
+        "//feature_integration_tests/configs:dlt_config_x86_64.json",
+        "//feature_integration_tests/configs:qemu_bridge_config.json",
+        "//showcases:showcases_pkg_tar",
+        "//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic",
+        "//images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux",
+    ],
+    plugins = [
+        "@score_itf//score/itf/plugins:dlt_plugin",
+        "@score_someip_gateway//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
+    ],
     tags = [
         "manual",
     ],

@@ -1,0 +1,32 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -17,7 +17,7 @@
+ # ============================================================================
+ # Python Configuration
+ # ============================================================================
+-bazel_dep(name = "rules_python", version = "1.9.0", dev_dependency = True)
++bazel_dep(name = "rules_python", version = "1.9.0")
+ 
+ python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
+ 
+@@ -317,6 +317,6 @@
+ # ============================================================================
+ # Integration Testing
+ # ============================================================================
+-bazel_dep(name = "score_itf", version = "0.4.0", dev_dependency = True)
++bazel_dep(name = "score_itf", version = "0.4.0")
+ bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+ bazel_dep(name = "rules_oci", version = "2.2.7", dev_dependency = True)
+
+diff --git a/quality/integration_testing/plugins/linux_qemu/BUILD b/quality/integration_testing/plugins/linux_qemu/BUILD
+--- a/quality/integration_testing/plugins/linux_qemu/BUILD
++++ b/quality/integration_testing/plugins/linux_qemu/BUILD
+@@ -28,7 +28,6 @@ py_library(
+         "@score_itf//score/itf/core/process",
+         "@score_itf//score/itf/core/utils",
+         "@score_itf//score/itf/plugins:core",
+         "@score_itf//score/itf/plugins/qemu",
+-        "@score_someip_gateway_pip//pytest",
+     ],
+ )
