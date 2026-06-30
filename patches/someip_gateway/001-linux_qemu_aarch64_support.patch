@@ -167,7 +167,7 @@ index cb4b9e4e..7a6ee374 100644
                          f"tap,id=t{idx},ifname={adapter},script=no,downscript=no",
                          "-device",
 -                        f"virtio-net-pci,netdev=t{idx},id=nic{idx},guest_csum=off",
-+                        f"virtio-net-pci,netdev=t{idx},id=nic{idx},guest_csum=off",
++                        f"virtio-net-device,netdev=t{idx},id=nic{idx},guest_csum=off",
                      ]
                  )
          return result
