@@ -30,6 +30,16 @@ config_setting(
     ],
 )
 
+config_setting(
+    name = "config_eb_aarch64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+        "@score_bazel_platforms//runtime_es:ebclfsa",
+        "@score_bazel_platforms//version:sdk_0.1.0",
+    ],
+)
+
 filegroup(
     name = "all_tests",
     srcs = [
@@ -113,6 +123,12 @@ py_itf_test(
         "@score_itf//score/itf/plugins:dlt_plugin",
         "@score_someip_gateway//quality/integration_testing/plugins/linux_qemu:linux_qemu_plugin",
     ],
+    target_compatible_with = select(
+        {
+            ":config_eb_aarch64": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        },
+    ),
     tags = [
         "manual",
     ],
