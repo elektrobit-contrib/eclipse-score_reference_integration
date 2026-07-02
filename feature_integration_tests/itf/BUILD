@@ -33,9 +33,9 @@ config_setting(
 filegroup(
     name = "all_tests",
     srcs = [
-        # "test_remote_logging.py",
+        "test_remote_logging.py",
         "test_showcases.py",
-        # "test_ssh.py",
+        "test_ssh.py",
     ],
 )
 
@@ -91,7 +91,9 @@ py_itf_test(
 py_itf_test(
     name = "itf_linux_qemu",
     srcs = [
-        ":all_tests",
+        # "test_remote_logging.py", # fails with Docker as well
+        "test_showcases.py",
+        # "test_ssh.py", # only works with QNX because it checks QNX names
     ],
     args = [
         "--dlt-config=$(location //feature_integration_tests/configs:dlt_config_x86_64.json)",

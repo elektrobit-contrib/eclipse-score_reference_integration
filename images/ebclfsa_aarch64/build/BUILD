@@ -80,12 +80,31 @@ pkg_tar(
     package_dir = "/etc/config/network",
 )
 
+pkg_tar(
+    name = "datarouter_bin_tar",
+    srcs = ["@score_logging//score/datarouter"],
+    mode = "0755",
+    package_dir = "/usr/bin/datarouter",
+)
+
+pkg_tar(
+    name = "datarouter_etc_tar",
+    srcs = [
+        "//feature_integration_tests/configs/datarouter:etc/log-channels.json",
+        "//feature_integration_tests/configs/datarouter:etc/logging.json",
+    ],
+    mode = "0644",
+    package_dir = "/usr/bin/datarouter/etc",
+)
+
 genrule(
     name = "itf-image",
     srcs = [
         "//feature_integration_tests/configs:etc_configs",
         ":extract-fastdev-image",
         ":network_config_tar",
+        ":datarouter_bin_tar",
+        ":datarouter_etc_tar",
         "build_image.sh",
     ],
     outs = [
@@ -98,6 +117,8 @@ genrule(
             $(RULEDIR)/ebcl-qemuarm64 \
             $(RULEDIR)/ebcl-qemuarm64-itf \
             $(location :network_config_tar) \
+            $(location :datarouter_bin_tar) \
+            $(location :datarouter_etc_tar) \
     ",
     visibility = [
         "//visibility:public",
