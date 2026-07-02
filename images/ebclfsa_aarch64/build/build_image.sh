@@ -14,8 +14,8 @@
 
 set -uoex pipefail
 
-if [[ $# -lt 3 ]]; then
-    echo "Error: Expected at least 3 arguments (working directoy, image source location, image target location, and zero or more tar files to deploy relative to the root of the image)" >&2
+if [[ $# -lt 4 ]]; then
+    echo "Error: Expected at least 4 arguments (working directoy, image source location, image target location, and one or more tar files to deploy relative to the root of the image)" >&2
     exit 1
 fi
 
