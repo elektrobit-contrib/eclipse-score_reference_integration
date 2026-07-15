@@ -31,11 +31,10 @@ git_override(
 bazel_dep(name = "score_someip_gateway")
 git_override(
     module_name = "score_someip_gateway",
-    commit = "a6e3b62225a0e409da6997914f223279bb3506ba",
+    commit = "c618f12bcec99b8f98d0ab1938736f757448a60a",
     patch_strip = 1,
     patches = [
         "//patches/someip_gateway:score_someip_gateway_make_itf_non_dev_dependency.patch",
-        "//patches/someip_gateway:001-linux_qemu_aarch64_support.patch",
     ],
     remote = "https://github.com/eclipse-score/inc_someip_gateway.git",
 )

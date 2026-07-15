@@ -109,7 +109,9 @@ py_itf_test(
         "--dlt-config=$(location //feature_integration_tests/configs:dlt_config_x86_64.json)",
         "--qemu-config=$(location //feature_integration_tests/configs:qemu_bridge_config.json)",
         "--qemu-image=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64.wic)",
+        "--qemu-architecture=aarch64",
         "--qemu-kernel=$(location //images/ebclfsa_aarch64/build:ebcl-qemuarm64-itf/fastdev-ubuntu-ebclfsa-ebcl-qemuarm64-vmlinux)",
+        "--qemu-kernel-cmdline=root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit",
         "--qemu-filesystem-tar=$(location //showcases:showcases_pkg_tar)",
     ],
     data = [
