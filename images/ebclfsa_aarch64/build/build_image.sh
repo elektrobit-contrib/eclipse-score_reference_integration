@@ -14,6 +14,27 @@
 
 set -uoex pipefail
 
+LISA_ELF_ENABLER=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --lisa-elf-enabler)
+            if [[ $# -lt 2 ]]; then
+                echo "Error: --lisa-elf-enabler requires a path" >&2
+                exit 1
+            fi
+            LISA_ELF_ENABLER="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 if [[ $# -lt 4 ]]; then
     echo "Error: Expected at least 4 arguments (working directoy, image source location, image target location, and one or more tar files to deploy relative to the root of the image)" >&2
     exit 1
@@ -30,6 +51,12 @@ IMAGE_SOURCE="$2"
 IMAGE_TARGET="$3"
 shift 3
 DEPLOY_SRCS=("$@")
+SSH_OPTIONS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+
+if [[ -z "$LISA_ELF_ENABLER" || ! -x "$LISA_ELF_ENABLER" ]]; then
+    echo "Error: lisa-elf-enabler is not available or not executable: $LISA_ELF_ENABLER" >&2
+    exit 1
+fi
 
 # Validate that the source directory exists
 if [[ ! -d "$IMAGE_SOURCE" ]]; then
@@ -68,6 +95,30 @@ for src in "${DEPLOY_SRCS[@]}"; do
     fi
 done
 
+# Prepare each archive locally, marking ELF applications before deployment.
+PREPROCESS_DIR=$(mktemp -d "$WORKING_DIR/deploy.XXXXXX")
+PREPARED_SRCS=()
+for index in "${!DEPLOY_SRCS[@]}"; do
+    src="${DEPLOY_SRCS[$index]}"
+    archive_dir="$PREPROCESS_DIR/extract-$index"
+    mkdir -p "$archive_dir"
+    tar -xf "$src" -C "$archive_dir"
+
+    while IFS= read -r -d '' application; do
+        [[ "$application" == */bin/* ]] || continue
+        [[ "$application" == *.so && "$application" != *.so.* ]] && continue
+        [[ "$application" == *.so.* ]] && continue
+
+        magic=""
+        IFS= read -r -N 4 magic < "$application" || true
+        [[ "$magic" == $'\177ELF' ]] && "$LISA_ELF_ENABLER" "$application"
+    done < <(find "$archive_dir" -type f -print0)
+
+    prepared_src="$PREPROCESS_DIR/$index-$(basename "$src")"
+    tar -caf "$prepared_src" -C "$archive_dir" .
+    PREPARED_SRCS+=("$prepared_src")
+done
+
 # Clear target directory and copy source directory content to target directory
 mkdir -p "$IMAGE_TARGET"
 rm -f "${IMAGE_TARGET:?}/"*
@@ -93,7 +144,7 @@ qemu-system-aarch64 -m 2048 -cpu cortex-a53 -machine virt \
 
 # Wait for QEMU to be accessible via SSH
 for i in {1..60}; do
-    if sshpass -p linux ssh -o StrictHostKeyChecking=no -o ConnectTimeout=1 -p 2222 root@localhost true 2>/dev/null; then
+    if sshpass -p linux ssh "${SSH_OPTIONS[@]}" -o ConnectTimeout=1 -p 2222 root@localhost true 2>/dev/null; then
         echo "QEMU is accessible"
         break
     fi
@@ -102,15 +153,15 @@ for i in {1..60}; do
 done
 
 # deploy files to QEMU via scp
-for src in "${DEPLOY_SRCS[@]}"; do
-    sshpass -p linux scp -rp -o StrictHostKeyChecking=no -P 2222 "$src" root@localhost:/
-    sshpass -p linux ssh -o StrictHostKeyChecking=no -p 2222 root@localhost "tar -xf /$(basename "$src") -C /"
-    sshpass -p linux ssh -o StrictHostKeyChecking=no -p 2222 root@localhost "rm -f /$(basename "$src")"
+for src in "${PREPARED_SRCS[@]}"; do
+    sshpass -p linux scp -rp "${SSH_OPTIONS[@]}" -P 2222 "$src" root@localhost:/
+    sshpass -p linux ssh "${SSH_OPTIONS[@]}" -p 2222 root@localhost "tar -xf /$(basename "$src") -C /"
+    sshpass -p linux ssh "${SSH_OPTIONS[@]}" -p 2222 root@localhost "rm -f /$(basename "$src")"
 done
 
 # Shutdown QEMU via SSH
-sshpass -p linux ssh -o StrictHostKeyChecking=no -p 2222 root@localhost sync
-sshpass -p linux ssh -o StrictHostKeyChecking=no -p 2222 root@localhost crinit-ctl poweroff || true
+sshpass -p linux ssh "${SSH_OPTIONS[@]}" -p 2222 root@localhost sync
+sshpass -p linux ssh "${SSH_OPTIONS[@]}" -p 2222 root@localhost crinit-ctl poweroff || true
 
 # Wait for QEMU process to finish
 if [[ -f "$WORKING_DIR/qemu.pid" ]]; then

@@ -53,12 +53,14 @@ genrule(
         ":scripts_tar",
         "build_image.sh",
     ],
+    tools = ["@score_ebclfsa_toolchain_pkg//:elf-enabler"],
     outs = [
         "ebcl-qemuarm64-deployed/fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic",
         "ebcl-qemuarm64-deployed/fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux",
     ],
     cmd = " \
         $(location build_image.sh) \
+            --lisa-elf-enabler $(location @score_ebclfsa_toolchain_pkg//:elf-enabler) \
             $(RULEDIR) \
             $(RULEDIR)/ebcl-qemuarm64 \
             $(RULEDIR)/ebcl-qemuarm64-deployed \
