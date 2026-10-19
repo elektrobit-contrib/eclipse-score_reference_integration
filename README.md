@@ -48,6 +48,37 @@ bazel run //showcases/cli:cli -- --help
 
 See [showcases/cli/README.md](showcases/cli/README.md) for CLI configuration and examples.
 
+### Summarize disallowed syscalls
+
+Run all showcases and write log to file:
+
+```bash
+bazel run --config=eb-aarch64 //images/ebclfsa_aarch64:run | tee with-whitelist.log
+```
+
+Filter showcase names and disallowed syscalls:
+
+```bash
+cat with-whitelist.log | grep "Running example\|is not allowed" > with-whitelist-filtered.log
+```
+
+Write manually `▶ Running example: cli` at the beginning of the filtered log if it is missing.
+
+Use [scripts/summarize_disallowed_syscalls.py](scripts/summarize_disallowed_syscalls.py)
+to collect `syscall <name> (<number>) is not allowed` messages from a UTF-8 log:
+
+```bash
+python3 scripts/summarize_disallowed_syscalls.py with-whitelist-filtered.log > syscall-summary.txt
+```
+
+The script prints a Jira wiki table with Application, syscall, and count columns.
+Each `▶ Running example: <example>` line starts fresh counters, even if an
+application name is repeated. Messages before the first example are ignored.
+Runs without disallowed syscalls produce no rows. Syscall names retain their
+`__NR_` prefix and syscall number (for example, `__NR_ioctl (29)`) and are sorted
+within each run. Different numbers for the same syscall name are counted separately.
+Unnamed syscalls are included as `(null) (<number>)`, for example `(null) (435)`.
+
 ## Build and deploy showcases on Raspberry Pi (QNX aarch64)
 
 The `images/qnx_aarch64` image packages all S-CORE showcases into a bootable QNX 8.0 IFS (Image File System) for AArch64 targets. It can be run in QEMU for local development and testing, or deployed to a Raspberry Pi 4/5 for real hardware validation.
