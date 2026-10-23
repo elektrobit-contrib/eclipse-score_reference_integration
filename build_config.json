@@ -1,0 +1,22 @@
+{
+    "modules": {
+        "score_baselibs": {
+            "build_targets": "@score_baselibs//score/..."
+        },
+        "score_communication": {
+            "build_targets": "@score_communication//score/mw/com:com"
+        },
+        "score_test_scenarios": {
+            "build_targets": "@score_test_scenarios//test_scenarios_rust:test_scenarios_rust @score_test_scenarios//test_scenarios_cpp:test_scenarios_cpp"
+        },
+        "score_logging": {
+            "build_targets": "@score_logging//score/mw/log"
+        },
+        "score_lifecycle": {
+            "build_targets": "@score_lifecycle//score/health_monitor/src/cpp/...  @score_lifecycle//score/launch_manager/src/..."
+        },
+        "score_someip_gateway": {
+            "build_targets": "@score_someip_gateway//score/config:config_file @score_someip_gateway//score/config:config_schema @score_someip_gateway//score/someipd:someipd @score_someip_gateway//score/gatewayd:gatewayd"
+        }
+    }
+}
