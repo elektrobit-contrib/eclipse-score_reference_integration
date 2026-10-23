@@ -177,6 +177,20 @@
                 "bazel_patches": [
                     "//patches/config_management:001-adapt-proxy-api-and-remove-internal-targets.patch"
                 ]
+            },
+            "score_inc_someip_gateway": {
+                "repo": "https://github.com/eclipse-score/inc_someip_gateway.git",
+                "docs": false,
+                "hash": "1415cae95b801d3cb254d5d0b60d5bfcd5bf067a",
+                "metadata": {
+                    "code_root_path": "//score/...",
+                    "extra_test_config": [],
+                    "exclude_test_targets": [],
+                    "langs": [
+                        "cpp"
+                    ],
+                    "rust_coverage_config": "ferrocene-coverage"
+                }
             }
         },
         "tooling": {

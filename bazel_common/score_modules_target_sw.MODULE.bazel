@@ -99,3 +99,10 @@ git_override(
     ],
     remote = "https://github.com/eclipse-score/config_management.git",
 )
+
+bazel_dep(name = "score_inc_someip_gateway")
+git_override(
+    module_name = "score_inc_someip_gateway",
+    commit = "1415cae95b801d3cb254d5d0b60d5bfcd5bf067a",
+    remote = "https://github.com/eclipse-score/inc_someip_gateway.git",
+)
