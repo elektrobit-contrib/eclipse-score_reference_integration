@@ -24,6 +24,7 @@ git_override(
         "//patches/baselibs:002-restore-qnx8-poll-workaround.patch",
         "//patches/baselibs:005-rename-manual-verification-report-id.patch",
         "//patches/baselibs:006-include-cpp-style-guide-in-toctree.patch",
+        # This patch is needed for `--config "eb-aarch64"` because it sets `--as-needed` globally.
         "//patches/baselibs:007-link-recorder-factory-with-frontend.patch",
     ],
     remote = "https://github.com/eclipse-score/baselibs.git",
