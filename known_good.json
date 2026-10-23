@@ -7,7 +7,8 @@
                     "//patches/baselibs:001-restore-trace-library-mock-visibility.patch",
                     "//patches/baselibs:002-restore-qnx8-poll-workaround.patch",
                     "//patches/baselibs:005-rename-manual-verification-report-id.patch",
-                    "//patches/baselibs:006-include-cpp-style-guide-in-toctree.patch"
+                    "//patches/baselibs:006-include-cpp-style-guide-in-toctree.patch",
+                    "//patches/baselibs:007-link-recorder-factory-with-frontend.patch"
                 ],
                 "metadata": {
                     "code_root_path": "//score/...",
@@ -108,6 +109,9 @@
             },
             "score_lifecycle": {
                 "repo": "https://github.com/eclipse-score/lifecycle.git",
+                "bazel_patches": [
+                    "//patches/lifecycle:001-google-benchmark-not-dev-dependency.patch"
+                ],
                 "metadata": {
                     "code_root_path": "//score/...",
                     "extra_test_config": [],

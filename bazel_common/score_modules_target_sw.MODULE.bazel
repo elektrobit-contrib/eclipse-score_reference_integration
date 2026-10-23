@@ -24,6 +24,7 @@ git_override(
         "//patches/baselibs:002-restore-qnx8-poll-workaround.patch",
         "//patches/baselibs:005-rename-manual-verification-report-id.patch",
         "//patches/baselibs:006-include-cpp-style-guide-in-toctree.patch",
+        "//patches/baselibs:007-link-recorder-factory-with-frontend.patch",
     ],
     remote = "https://github.com/eclipse-score/baselibs.git",
 )
@@ -72,6 +73,10 @@ bazel_dep(name = "score_lifecycle")
 git_override(
     module_name = "score_lifecycle",
     commit = "85da2168328d17a3cf53791ebf93534e5ed921fc",
+    patch_strip = 1,
+    patches = [
+        "//patches/lifecycle:001-google-benchmark-not-dev-dependency.patch",
+    ],
     remote = "https://github.com/eclipse-score/lifecycle.git",
 )
 

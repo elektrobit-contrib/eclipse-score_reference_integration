@@ -1,0 +1,10 @@
+diff --git a/score/mw/log/BUILD b/score/mw/log/BUILD
+--- a/score/mw/log/BUILD
++++ b/score/mw/log/BUILD
+@@ -37,5 +37,6 @@ cc_library(
+         "@score_baselibs//score/mw/log/detail:empty_recorder",
+         "@score_baselibs//score/mw/log/detail:recorder_interface",
+         "@score_baselibs//score/mw/log/detail:thread_local_guard",
++        "@score_baselibs//score/mw/log/detail:registry_aware_recorder_factory",
+         "@score_baselibs//score/result",
+     ],
