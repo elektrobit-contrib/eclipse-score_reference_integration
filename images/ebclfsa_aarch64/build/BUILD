@@ -12,8 +12,33 @@
 # *******************************************************************************
 
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@score_os_images//ebclfsa_aarch64_prebuild:defs.bzl", "ebclfsa_aarch64_prebuild")
+
+pkg_files(
+    name = "hello_world_hi_pkg_files",
+    srcs = ["//bazel/toolchains:hello_world_hi_for_image"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/bin",
+    renames = {"//bazel/toolchains:hello_world_hi_for_image": "hello_world_hi"},
+)
+
+pkg_tar(
+    name = "hello_world_hi_pkg_tar",
+    srcs = [":hello_world_hi_pkg_files"],
+)
+
+pkg_deb(
+    name = "hello_world_hi_deb",
+    architecture = "arm64",
+    data = ":hello_world_hi_pkg_tar",
+    description = "EBcLfSA high-integrity Clang/musl hello world",
+    homepage = "https://github.com/eclipse-score/reference_integration",
+    maintainer = "Eclipse S-CORE contributors",
+    package = "score-reference-integration-hello-world-hi",
+    version = "1.0.0",
+)
 
 pkg_tar(
     name = "crinit_config_tar",
@@ -81,5 +106,6 @@ ebclfsa_aarch64_prebuild(
         ":platform_deb",
         ":scripts_deb",
         ":showcases_deb",
+        ":hello_world_hi_deb",
     ],
 )

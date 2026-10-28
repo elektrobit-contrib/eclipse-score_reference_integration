@@ -61,7 +61,8 @@ To simplify the deployment and focus on the integration itself, this demo uses p
 These consist of a pre-built image and a cross-compilation toolchain.
 Both assets are referenced in the corresponding Bazel targets and are automatically downloaded on demand.
 Bazel uses the `os_images` prebuilt-image macro to install the S-CORE platform,
-showcases, and integration configuration into that image.
+showcases, integration configuration, and the high-integrity hello-world
+example into that image.
 
 The pre-built image provides a so called "fast-dev" integration for EBcLfSA,
 which makes development and debugging of high integrity applications easy.
@@ -84,6 +85,23 @@ rm -f "$key"
 ```
 
 The release image uses its bundled development key instead of password authentication.
+
+### High-integrity Clang/musl toolchain
+
+The default `--config=eb-aarch64` continues to use the QM GCC/glibc toolchain.
+The EBcLfSA Clang/musl/libc++ toolchain is available separately as
+`--config=eb-aarch64-hi`. Build the standalone C++ hello-world target with:
+
+```bash
+bazel build --config=eb-aarch64-hi //bazel/toolchains:hello_world_hi
+```
+
+The generated executable targets AArch64 and is statically linked against the
+SDK's musl C library and libc++.
+The image packages the ELF-enabled executable as
+`//images/ebclfsa_aarch64/build:hello_world_hi_deb`, installed at
+`/usr/bin/hello_world_hi`. The S-CORE showcases are installed from
+`//images/ebclfsa_aarch64/build:showcases_deb`.
 
 ## Main constraints for high-integrity applications
 
