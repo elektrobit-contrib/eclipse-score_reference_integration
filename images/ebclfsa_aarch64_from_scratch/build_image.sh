@@ -14,8 +14,8 @@
 
 set -euo pipefail
 
-if [[ $# != 6 ]]; then
-    echo "Usage: $0 TOOLKIT_SOURCE_DIR DEB KAS_CONFIG GETTY_CONFIG START_SCRIPT OUTPUT_DIR" >&2
+if [[ $# != 7 ]]; then
+    echo "Usage: $0 TOOLKIT_SOURCE_DIR SHOWCASES_DEB HI_DEB KAS_CONFIG GETTY_CONFIG START_SCRIPT OUTPUT_DIR" >&2
     exit 1
 fi
 
@@ -29,10 +29,11 @@ docker info >/dev/null
 
 toolkit=$(realpath "$1")
 deb=$(realpath "$2")
-config=$(realpath "$3")
-getty=$(realpath "$4")
-start=$(realpath "$5")
-output=$(realpath "$6")
+hi_deb=$(realpath "$3")
+config=$(realpath "$4")
+getty=$(realpath "$5")
+start=$(realpath "$6")
+output=$(realpath "$7")
 sources=$(dirname "$config")
 # Keep the workspace on the same filesystem visible to the Docker daemon.
 work=$(mktemp -d "$output/kas-work.XXXXXXXX")
@@ -42,9 +43,11 @@ cp -R "$toolkit/kas" "$toolkit/layers" "$toolkit/.devcontainer" "$work/"
 cp -R "$sources/meta-score" "$work/meta-score"
 cp "$config" "$work/kas/score.yml"
 packages="$work/meta-score/recipes-score/score-showcases/files"
+hi_packages="$work/meta-score/recipes-score/score-hello-world-hi/files"
 console="$work/meta-score/recipes-crinit/fastdev/files"
-mkdir -p "$packages" "$console"
+mkdir -p "$packages" "$hi_packages" "$console"
 cp "$deb" "$packages/score-showcases_1.0_arm64.deb"
+cp "$hi_deb" "$hi_packages/score-hello-world-hi_1.0_arm64.deb"
 cp "$getty" "$console/getty-console.crinit"
 cp "$start" "$console/delayed-start.sh"
 

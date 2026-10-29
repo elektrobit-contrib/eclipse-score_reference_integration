@@ -7,6 +7,13 @@ bazel run --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:run
 This cross-compiles the showcases with the EB aarch64 toolchains, packages
 [`//showcases:showcases_pkg_tar`](../../showcases/BUILD) as the `score-showcases`
 arm64 Debian package, and builds a new `fastdev` disk image with KAS/Isar.
+It also builds [`hello_world_hi.cc`](../../bazel/toolchains/hello_world_hi.cc)
+with `//bazel/toolchains:score_ebclfsa_toolchain_hi` and installs the separate
+`score-hello-world-hi` arm64 Debian package. A per-target transition selects
+the HI toolchain for this executable while the showcases retain the regular
+EB toolchains selected by `--config=eb-aarch64`. The HI executable statically
+links the SDK's musl and libc++ runtimes; it needs no glibc or libstdc++ package
+dependencies.
 The image is assembled from Debian packages using a Git checkout of the
 [EB corbos Toolkit v2.0.0-beta3 tag](https://github.com/Elektrobit/eb_corbos_toolkit/tree/v2.0.0-beta3),
 pinned to its commit in `MODULE.bazel`. Only the KAS configuration, bundled Isar
@@ -46,6 +53,8 @@ The kernel and `.wic` disk image are written to
 `bazel-bin/images/ebclfsa_aarch64_from_scratch/`. The temporary KAS workspace
 is removed after the build. The showcases are installed at `/showcases`.
 The existing console configuration starts the showcase CLI automatically.
+The HI example is installed at `/usr/bin/hello_world_hi`; run it from the guest
+shell to print `Hello, high-integrity world!`.
 QEMU uses a temporary disk snapshot so running it does not modify Bazel's
 image output. Exit QEMU with `Ctrl-a x`.
 
@@ -53,7 +62,12 @@ The Debian package can also be built separately:
 
 ```bash
 bazel build --config=eb-aarch64 //showcases:showcases_deb
+bazel build --config=eb-aarch64 //bazel/toolchains:hello_world_hi_deb
 ```
+
+The HI package's transition also works under `--config=linux-x86_64`; its
+payload is always the aarch64 HI executable, independently of the caller's
+target platform.
 
 The original [prebuilt-image integration](../ebclfsa_aarch64/README.md) remains
 available unchanged.

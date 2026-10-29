@@ -24,6 +24,7 @@ echo "KAS configuration" > "$fixture/kas/public.yml"
 echo "bundled Isar" > "$fixture/layers/isar/isar-init-build-env"
 echo "container configuration" > "$fixture/.devcontainer/devcontainer.json"
 echo "Debian package fixture" > "$TEST_TMPDIR/showcases.deb"
+echo "High-integrity Debian package fixture" > "$TEST_TMPDIR/hello-world-hi.deb"
 
 # Exercise staging, artifact export and error propagation without a privileged
 # container or network access.
@@ -47,6 +48,11 @@ docker() {
     cmp "$TEST_TMPDIR/fixture/.devcontainer/devcontainer.json" "$work/.devcontainer/devcontainer.json"
     cmp "$TEST_TMPDIR/showcases.deb" \
         "$work/meta-score/recipes-score/score-showcases/files/score-showcases_1.0_arm64.deb"
+    cmp "$TEST_TMPDIR/hello-world-hi.deb" \
+        "$work/meta-score/recipes-score/score-hello-world-hi/files/score-hello-world-hi_1.0_arm64.deb"
+    grep -q 'score-showcases score-hello-world-hi' "$work/kas/score.yml"
+    grep -q 'file://score-hello-world-hi_1.0_arm64.deb' \
+        "$work/meta-score/recipes-score/score-hello-world-hi/score-hello-world-hi_1.0.bb"
     cmp "$TEST_SRCDIR/_main/images/ebclfsa_aarch64_from_scratch/kas.yml" "$work/kas/score.yml"
     cmp "$TEST_SRCDIR/_main/images/ebclfsa_aarch64/build/config-overlay/etc/crinit/crinit.d/getty-console.crinit" \
         "$work/meta-score/recipes-crinit/fastdev/files/getty-console.crinit"
@@ -66,7 +72,7 @@ export -f docker
 
 build_image() {
     bash "$sources/build_image.sh" "$fixture" \
-        "$TEST_TMPDIR/showcases.deb" "$sources/kas.yml" \
+        "$TEST_TMPDIR/showcases.deb" "$TEST_TMPDIR/hello-world-hi.deb" "$sources/kas.yml" \
         "$overlay/etc/crinit/crinit.d/getty-console.crinit" \
         "$overlay/usr/bin/delayed-start.sh" "$output"
 }

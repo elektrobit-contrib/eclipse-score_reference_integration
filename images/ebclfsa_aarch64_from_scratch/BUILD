@@ -20,6 +20,7 @@ genrule(
         "kas.yml",
         "@eb_corbos_toolkit//:BUILD.bazel",
         "@eb_corbos_toolkit//:sources",
+        "//bazel/toolchains:hello_world_hi_deb",
         "//showcases:showcases_deb",
         "//images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit",
         "//images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh",
@@ -31,6 +32,7 @@ genrule(
     cmd = "bash $(location build_image.sh) " +
           "$$(dirname $(location @eb_corbos_toolkit//:BUILD.bazel)) " +
           "$(location //showcases:showcases_deb) " +
+          "$(location //bazel/toolchains:hello_world_hi_deb) " +
           "$(location kas.yml) " +
           "$(location //images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit) " +
           "$(location //images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh) " +
