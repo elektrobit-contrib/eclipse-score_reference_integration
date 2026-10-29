@@ -46,7 +46,7 @@ remote executor.
 To build without starting QEMU:
 
 ```bash
-bazel build --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:image
+bazel build --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:run
 ```
 
 The kernel and `.wic` disk image are written to
@@ -71,6 +71,36 @@ target platform.
 
 The original [prebuilt-image integration](../ebclfsa_aarch64/README.md) remains
 available unchanged.
+
+### Network and SSH access
+
+The image uses the same network setup as
+[`ebclfsa_aarch64`](../ebclfsa_aarch64/README.md). The toolkit's `fastdev`
+image already installs the guest network configuration and SSH server, including
+password login for `root`. Both images use the shared
+[QEMU runner](../../runners/qemu_aarch64/scripts/run_qemu.sh), which configures
+the `192.168.7.0/24` user network and forwards host TCP port `2222` to guest
+port `22`, and host TCP port `3333` to guest port `3333`. The guest uses
+`192.168.7.2/24` on `br0`, bridged to `eth0`.
+
+After starting the image, connect from another host terminal:
+
+```bash
+ssh -p 2222 root@localhost
+# Password: linux
+```
+
+Or, with `sshpass` installed:
+
+```bash
+sshpass -p linux ssh -p 2222 root@localhost
+```
+
+Only run one image using these host ports at a time. SSH host keys are generated
+on boot; because the runner uses a temporary snapshot, a later boot can have a
+different host key. If SSH reports a changed key, first confirm that the previous
+guest has stopped and that port `2222` belongs to the new local guest, then remove
+the old entry with `ssh-keygen -R '[localhost]:2222'` and reconnect.
 
 ## Tests
 
