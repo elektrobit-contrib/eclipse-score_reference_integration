@@ -14,6 +14,13 @@ the HI toolchain for this executable while the showcases retain the regular
 EB toolchains selected by `--config=eb-aarch64`. The HI executable statically
 links the SDK's musl and libc++ runtimes; it needs no glibc or libstdc++ package
 dependencies.
+Before packaging, [`ebclfsa_hi_binary`](../../bazel/toolchains/ebclfsa_hi_binary.bzl)
+runs the SDK's `lisa-elf-enabler` on a private copy of the linked executable.
+This marks its ELF header as an HI application without modifying the original
+`cc_binary` output. Consumers must use the wrapper target (here,
+`//bazel/toolchains:hello_world_hi_for_image`) to obtain the enabled executable;
+selecting the HI compiler toolchain alone does not enable the ELF header.
+
 The image is assembled from Debian packages using a Git checkout of the
 [EB corbos Toolkit v2.0.0-beta3 tag](https://github.com/Elektrobit/eb_corbos_toolkit/tree/v2.0.0-beta3),
 pinned to its commit in `MODULE.bazel`. Only the KAS configuration, bundled Isar
@@ -103,6 +110,13 @@ guest has stopped and that port `2222` belongs to the new local guest, then remo
 the old entry with `ssh-keygen -R '[localhost]:2222'` and reconnect.
 
 ## Tests
+
+The HI binary test checks the ELF supervision marker and AArch64 architecture,
+and verifies that the package contains the enabled executable:
+
+```bash
+bazel test --config=eb-aarch64 //bazel/toolchains:hello_world_hi_test
+```
 
 The staging test checks package and console configuration placement, excludes
 prebuilt images, and verifies cleanup and failure propagation without Docker:

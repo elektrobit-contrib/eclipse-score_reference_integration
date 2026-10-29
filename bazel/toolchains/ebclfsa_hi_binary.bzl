@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-"""Build an executable with the EBcLfSA high-integrity toolchain."""
+"""Build and ELF-enable an executable with the EBcLfSA HI toolchain."""
 
 def _ebclfsa_hi_transition_impl(settings, _attr):
     hi_toolchain = str(Label("//bazel/toolchains:score_ebclfsa_toolchain_hi"))
@@ -37,10 +37,23 @@ _ebclfsa_hi_transition = transition(
 def _ebclfsa_hi_binary_impl(ctx):
     binary = ctx.attr.binary[0][DefaultInfo]
     executable = ctx.actions.declare_file(ctx.label.name)
-    ctx.actions.symlink(
-        output = executable,
-        target_file = binary.files_to_run.executable,
-        is_executable = True,
+    ctx.actions.run_shell(
+        inputs = [binary.files_to_run.executable],
+        tools = [ctx.file._elf_enabler, ctx.attr._sdk_files[DefaultInfo].files],
+        outputs = [executable],
+        arguments = [
+            binary.files_to_run.executable.path,
+            executable.path,
+            ctx.file._elf_enabler.path,
+        ],
+        command = """
+set -eu
+cp -- "$1" "$2"
+chmod 0755 -- "$2"
+"$3" "$2"
+""",
+        mnemonic = "EbclfsaElfEnable",
+        progress_message = "Enabling HI ELF executable %{label}",
     )
     return [DefaultInfo(
         executable = executable,
@@ -49,6 +62,7 @@ def _ebclfsa_hi_binary_impl(ctx):
 
 ebclfsa_hi_binary = rule(
     implementation = _ebclfsa_hi_binary_impl,
+    doc = "Builds with the HI SDK and ELF-enables a private copy of the executable.",
     attrs = {
         "binary": attr.label(
             mandatory = True,
@@ -58,6 +72,15 @@ ebclfsa_hi_binary = rule(
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+        "_elf_enabler": attr.label(
+            default = "@score_ebclfsa_toolchain_pkg//:elf-enabler",
+            allow_single_file = True,
+            cfg = "exec",
+        ),
+        "_sdk_files": attr.label(
+            default = "@score_ebclfsa_toolchain_pkg//:all_files",
+            cfg = "exec",
         ),
     },
     executable = True,

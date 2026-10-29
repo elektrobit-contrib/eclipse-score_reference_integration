@@ -14,6 +14,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@score_tooling//cpp/libclang:libclang_toolchain.bzl", "libclang_toolchain")
 load(":ebclfsa_hi.bzl", "ebclfsa_hi_toolchain")
 load(":ebclfsa_hi_binary.bzl", "ebclfsa_hi_binary")
@@ -54,6 +55,20 @@ pkg_deb(
     package = "score-hello-world-hi",
     version = "1.0",
     visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "hello_world_hi_test",
+    size = "small",
+    srcs = ["hello_world_hi_test.sh"],
+    args = [
+        "$(location :hello_world_hi_for_image)",
+        "$(location :hello_world_hi_pkg_tar)",
+    ],
+    data = [
+        ":hello_world_hi_for_image",
+        ":hello_world_hi_pkg_tar",
+    ],
 )
 
 # libclang toolchain for the score_tooling C++ parser. score_tooling deliberately
