@@ -73,6 +73,10 @@ build:eb-aarch64 --extra_toolchains=@score_ebclfsa_toolchain//:aarch64-linux-sdk
 build:eb-aarch64 --extra_toolchains=@ferrocene_aarch64_ebclfsa//:rust_ferrocene_toolchain
 build:eb-aarch64 --platforms=@score_bazel_platforms//:aarch64-linux-sdk_2.0.0-beta3-ebclfsa
 
+build:eb-aarch64-hi --config=_common
+build:eb-aarch64-hi --extra_toolchains=//bazel/toolchains:score_ebclfsa_toolchain_hi
+build:eb-aarch64-hi --platforms=@score_bazel_platforms//:aarch64-linux-sdk_2.0.0-beta3-ebclfsa
+
 build:autosd-x86_64 --config=_common
 build:autosd-x86_64 --force_pic
 # AutoSD supplies its own link flags and has no static libstdc++.
