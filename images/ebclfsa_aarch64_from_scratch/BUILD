@@ -17,10 +17,31 @@ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 IMAGE_PACKAGES = [
-    "//showcases:showcases_deb",
+    ":showcases_deb",
     "//bazel/toolchains:hello_world_hi_deb",
     ":config_deb",
 ]
+
+pkg_deb(
+    name = "showcases_deb",
+    architecture = "arm64",
+    data = "//showcases:showcases_pkg_tar",
+    depends = [
+        "libc6",
+        "libgcc-s1",
+        "libstdc++6",
+    ],
+    description = "Eclipse S-CORE showcases for EB corbos Linux for Safety Applications",
+    homepage = "https://github.com/eclipse-score/reference_integration",
+    maintainer = "Eclipse S-CORE contributors <score-dev@eclipse.org>",
+    package = "score-showcases",
+    target_compatible_with = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    version = "1.0",
+    visibility = ["//visibility:public"],
+)
 
 pkg_tar(
     name = "getty_console_tar",

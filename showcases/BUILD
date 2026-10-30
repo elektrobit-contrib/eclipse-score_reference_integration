@@ -10,7 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup")
 load("//bazel_common:bundlers.bzl", "score_pkg_bundle")
 
@@ -27,27 +26,6 @@ score_pkg_bundle(
         "//showcases/standalone:baselibs_pkg_files",
     ],
     package_dir = "showcases",
-)
-
-pkg_deb(
-    name = "showcases_deb",
-    architecture = "arm64",
-    data = ":showcases_pkg_tar",
-    depends = [
-        "libc6",
-        "libgcc-s1",
-        "libstdc++6",
-    ],
-    description = "Eclipse S-CORE showcases for EB corbos Linux for Safety Applications",
-    homepage = "https://github.com/eclipse-score/reference_integration",
-    maintainer = "Eclipse S-CORE contributors <score-dev@eclipse.org>",
-    package = "score-showcases",
-    target_compatible_with = [
-        "@platforms//cpu:aarch64",
-        "@platforms//os:linux",
-    ],
-    version = "1.0",
-    visibility = ["//visibility:public"],
 )
 
 # rules_pkg provider view of the showcases bundle for consumers that need a
