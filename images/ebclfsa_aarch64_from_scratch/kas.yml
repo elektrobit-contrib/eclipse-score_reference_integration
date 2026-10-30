@@ -19,7 +19,3 @@ repos:
     path: meta-score
     layers:
       .:
-
-local_conf_header:
-  score_showcases: |
-    IMAGE_INSTALL:append = " score-showcases score-hello-world-hi"

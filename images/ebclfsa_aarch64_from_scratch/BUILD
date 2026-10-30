@@ -11,8 +11,52 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+IMAGE_PACKAGES = [
+    "//showcases:showcases_deb",
+    "//bazel/toolchains:hello_world_hi_deb",
+    ":config_deb",
+]
+
+pkg_tar(
+    name = "getty_console_tar",
+    srcs = ["//images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit"],
+    mode = "0644",
+    package_dir = "/etc/crinit/crinit.d",
+)
+
+pkg_tar(
+    name = "delayed_start_tar",
+    srcs = ["//images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh"],
+    mode = "0755",
+    package_dir = "/usr/bin",
+)
+
+pkg_tar(
+    name = "config_tar",
+    deps = [
+        ":delayed_start_tar",
+        ":getty_console_tar",
+    ],
+)
+
+pkg_deb(
+    name = "config_deb",
+    architecture = "all",
+    conffiles = ["/etc/crinit/crinit.d/getty-console.crinit"],
+    data = ":config_tar",
+    depends = ["ebclfsa-fastdev-crinit-getty"],
+    description = "S-CORE showcase console configuration and delayed startup",
+    maintainer = "Eclipse S-CORE contributors <score-dev@eclipse.org>",
+    package = "config-deb",
+    replaces = ["ebclfsa-fastdev-crinit-getty"],
+    version = "1.0",
+    visibility = ["//visibility:public"],
+)
 
 genrule(
     name = "image",
@@ -20,23 +64,16 @@ genrule(
         "kas.yml",
         "@eb_corbos_toolkit//:BUILD.bazel",
         "@eb_corbos_toolkit//:sources",
-        "//bazel/toolchains:hello_world_hi_deb",
-        "//showcases:showcases_deb",
-        "//images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit",
-        "//images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh",
-    ] + glob(["meta-score/**"]),
+    ] + IMAGE_PACKAGES + glob(["meta-score/**"]),
     outs = [
         "fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux",
         "fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic",
     ],
     cmd = "bash $(location build_image.sh) " +
           "$$(dirname $(location @eb_corbos_toolkit//:BUILD.bazel)) " +
-          "$(location //showcases:showcases_deb) " +
-          "$(location //bazel/toolchains:hello_world_hi_deb) " +
           "$(location kas.yml) " +
-          "$(location //images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit) " +
-          "$(location //images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh) " +
-          "$(RULEDIR)",
+          "$(RULEDIR) " +
+          " ".join(["\"$(location %s)\"" % package for package in IMAGE_PACKAGES]),
     local = True,
     tags = ["manual"],
     tools = ["build_image.sh"],
@@ -66,9 +103,13 @@ sh_test(
     name = "build_image_test",
     size = "small",
     srcs = ["build_image_test.sh"],
+    args = [
+        "$(location :config_deb)",
+    ],
     data = [
         "build_image.sh",
         "kas.yml",
+        ":config_deb",
         "//images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit",
         "//images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh",
     ] + glob(["meta-score/**"]),

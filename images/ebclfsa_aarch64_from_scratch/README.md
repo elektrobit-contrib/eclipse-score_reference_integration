@@ -33,7 +33,8 @@ this is an image build from packages, not a source rebuild of the entire OS.
 
 ## Requirements
 
-- An x86_64 Linux host with Docker and permission to run privileged containers.
+- An x86_64 Linux host with Docker, `dpkg-deb` (from `dpkg`), and permission to
+  run privileged containers.
   The Docker daemon must see the Bazel output directory at the same absolute
   path as the build process (not a remote Docker daemon).
 - Network access to GitHub, GHCR, and the package repositories referenced by the
@@ -59,7 +60,14 @@ bazel build --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:run
 The kernel and `.wic` disk image are written to
 `bazel-bin/images/ebclfsa_aarch64_from_scratch/`. The temporary KAS workspace
 is removed after the build. The showcases are installed at `/showcases`.
-The existing console configuration starts the showcase CLI automatically.
+The `config-deb` Debian package, built by
+[`config_deb`](BUILD), installs both
+the console configuration at `/etc/crinit/crinit.d/getty-console.crinit` (mode
+`0644`) and the startup script at `/usr/bin/delayed-start.sh` (mode `0755`).
+The console configuration starts the showcase CLI automatically. Its package
+depends on the toolkit's `ebclfsa-fastdev-crinit-getty` package and declares
+`Replaces` for its configuration file, allowing Debian to transfer file ownership
+without an overwrite conflict.
 The HI example is installed at `/usr/bin/hello_world_hi`; run it from the guest
 shell to print `Hello, high-integrity world!`.
 QEMU uses a temporary disk snapshot so running it does not modify Bazel's
@@ -78,6 +86,34 @@ target platform.
 
 The original [prebuilt-image integration](../ebclfsa_aarch64/README.md) remains
 available unchanged.
+
+### Selecting packages
+
+Edit `IMAGE_PACKAGES` in [BUILD](BUILD) to select the Debian package targets
+installed in the image. This list supplies both the Bazel action inputs and the
+script arguments; no package-specific recipes or KAS changes are needed.
+
+The [build script](build_image.sh) accepts zero or more Debian package paths
+after its three fixed arguments:
+
+```bash
+bash images/ebclfsa_aarch64_from_scratch/build_image.sh \
+  /path/to/toolkit images/ebclfsa_aarch64_from_scratch/kas.yml \
+  /existing/output/directory \
+  /path/to/first.deb "/path/to/another package.deb"
+```
+
+Each package is copied into its own generated `dpkg-prebuilt` recipe in the
+temporary workspace. Package names are read from Debian control metadata, not
+inferred from filenames; input filenames and versions may vary. A generated KAS
+fragment adds all supplied package names to `IMAGE_INSTALL`. Duplicate package
+names and names colliding with existing recipe directories are rejected.
+Generated recipes use `LICENSE = "CLOSED"` because Debian control metadata does
+not reliably provide an SPDX license; the packages' actual licenses are unchanged.
+With no packages, only the base image is built, without the showcase console
+configuration. Packages
+must be compatible with the arm64 image, and their dependencies must be available
+from the configured repositories or supplied in the same list.
 
 ### Network and SSH access
 
@@ -118,8 +154,10 @@ and verifies that the package contains the enabled executable:
 bazel test --config=eb-aarch64 //bazel/toolchains:hello_world_hi_test
 ```
 
-The staging test checks package and console configuration placement, excludes
-prebuilt images, and verifies cleanup and failure propagation without Docker:
+The staging test checks zero, one, two, and four packages with arbitrary filenames,
+generated recipes and install lists, invalid and duplicate package rejection,
+console package contents, permissions and replacement metadata, cleanup, and
+failure propagation without Docker:
 
 ```bash
 bazel test --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:build_image_test
