@@ -5,6 +5,9 @@ This is an `aarch64`-based, pre-built image, capable of demonstraing the executi
 The example can be executed using QEMU.
 In the [related CI workflow](../.github/workflows/build_and_test_ebclfsa.yml), all these steps are performed, and the resulting log files are stored and made available for download.
 
+For a new image assembled from Debian packages with KAS, instead of deploying
+onto this prebuilt image, see the [from-scratch build](../ebclfsa_aarch64_from_scratch/README.md).
+
 > [!TIP]
 > **Quick Start**
 >
@@ -68,6 +71,19 @@ It checks at runtime, whether high integrity applications adhere to certain assu
 
 Note that this image represents a development image but not a production image of Linux for Safety Application.
 It is aimed at demonstrating development with focus on key features and AoUs.
+
+### High-integrity Clang/musl toolchain
+
+The default `--config=eb-aarch64` continues to use the QM GCC/glibc toolchain.
+The EBcLfSA Clang/musl/libc++ toolchain is available separately as
+`--config=eb-aarch64-hi`. Build the standalone C++ hello-world target with:
+
+```bash
+bazel build --config=eb-aarch64-hi //bazel/toolchains:hello_world_hi
+```
+
+The generated executable targets AArch64 and is statically linked against the
+SDK's musl C library and libc++.
 
 ## Main constraints for high-integrity applications
 

@@ -10,7 +10,37 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@score_tooling//cpp/libclang:libclang_toolchain.bzl", "libclang_toolchain")
+load(":ebclfsa_hi.bzl", "ebclfsa_hi_toolchain")
+load(":ebclfsa_hi_binary.bzl", "ebclfsa_hi_binary")
+
+ebclfsa_hi_toolchain(name = "score_ebclfsa_toolchain_hi")
+
+cc_binary(
+    name = "hello_world_hi",
+    srcs = ["hello_world_hi.cc"],
+    visibility = ["//visibility:public"],
+)
+
+ebclfsa_hi_binary(
+    name = "hello_world_hi_for_image",
+    binary = ":hello_world_hi",
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "hello_world_hi_test",
+    size = "small",
+    srcs = ["hello_world_hi_test.sh"],
+    args = [
+        "$(location :hello_world_hi_for_image)",
+    ],
+    data = [
+        ":hello_world_hi_for_image",
+    ],
+)
 
 # libclang toolchain for the score_tooling C++ parser. score_tooling deliberately
 # does not register a libclang toolchain for its consumers, so the reference

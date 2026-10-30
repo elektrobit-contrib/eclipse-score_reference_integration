@@ -44,6 +44,24 @@ include("//bazel_common:score_modules_target_sw.MODULE.bazel")
 # Score test images
 include("//bazel_common:score_images.MODULE.bazel")
 
+# The release tag includes the KAS/Isar sources; no delivery images are needed.
+new_git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+
+new_git_repository(
+    name = "eb_corbos_toolkit",
+    build_file_content = """
+exports_files(["BUILD.bazel"])
+
+filegroup(
+    name = "sources",
+    srcs = glob(["kas/**", "layers/**", ".devcontainer/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    commit = "fe2cddbc01232e4b62accb9abab783c8ccf75ef7",  # v2.0.0-beta3
+    remote = "https://github.com/Elektrobit/eb_corbos_toolkit.git",
+)
+
 # Single-version locks for the deps Stage 2 collects test artifacts from (GTest, the Rust
 # test rules, the ferrocene coverage tooling). Read after the includes above so it pins the
 # versions they bring in transitively.

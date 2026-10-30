@@ -33,4 +33,5 @@ use_repo(
     gcc,
     "score_autosd10_x86_64_toolchain",
     "score_ebclfsa_toolchain",
+    "score_ebclfsa_toolchain_pkg",
 )
