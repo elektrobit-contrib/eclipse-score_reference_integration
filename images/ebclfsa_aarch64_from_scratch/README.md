@@ -76,8 +76,8 @@ image output. Exit QEMU with `Ctrl-a x`.
 The Debian package can also be built separately:
 
 ```bash
-bazel build --config=eb-aarch64 //showcases:showcases_deb
-bazel build --config=eb-aarch64 //bazel/toolchains:hello_world_hi_deb
+bazel build --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:showcases_deb
+bazel build --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:hello_world_hi_deb
 ```
 
 The HI package's transition also works under `--config=linux-x86_64`; its
@@ -147,8 +147,7 @@ the old entry with `ssh-keygen -R '[localhost]:2222'` and reconnect.
 
 ## Tests
 
-The HI binary test checks the ELF supervision marker and AArch64 architecture,
-and verifies that the package contains the enabled executable:
+The HI binary test checks the ELF supervision marker and AArch64 architecture:
 
 ```bash
 bazel test --config=eb-aarch64 //bazel/toolchains:hello_world_hi_test

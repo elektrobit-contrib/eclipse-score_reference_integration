@@ -12,13 +12,14 @@
 # *******************************************************************************
 
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 IMAGE_PACKAGES = [
     ":showcases_deb",
-    "//bazel/toolchains:hello_world_hi_deb",
+    ":hello_world_hi_deb",
     ":config_deb",
 ]
 
@@ -39,6 +40,31 @@ pkg_deb(
         "@platforms//cpu:aarch64",
         "@platforms//os:linux",
     ],
+    version = "1.0",
+    visibility = ["//visibility:public"],
+)
+
+pkg_files(
+    name = "hello_world_hi_pkg_files",
+    srcs = ["//bazel/toolchains:hello_world_hi_for_image"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "usr/bin",
+    renames = {"//bazel/toolchains:hello_world_hi_for_image": "hello_world_hi"},
+)
+
+pkg_tar(
+    name = "hello_world_hi_pkg_tar",
+    srcs = [":hello_world_hi_pkg_files"],
+)
+
+pkg_deb(
+    name = "hello_world_hi_deb",
+    architecture = "arm64",
+    data = ":hello_world_hi_pkg_tar",
+    description = "EBcLfSA high-integrity Clang/musl hello world",
+    homepage = "https://github.com/eclipse-score/reference_integration",
+    maintainer = "Eclipse S-CORE contributors <score-dev@eclipse.org>",
+    package = "score-hello-world-hi",
     version = "1.0",
     visibility = ["//visibility:public"],
 )

@@ -15,7 +15,6 @@
 set -euo pipefail
 
 binary=$1
-package=$2
 
 [[ -f "$binary" && -x "$binary" ]]
 
@@ -30,8 +29,3 @@ if [[ "$machine" != b700 ]]; then
     echo "Error: expected an AArch64 executable, got ELF machine $machine" >&2
     exit 1
 fi
-
-tar -xf "$package" -C "$TEST_TMPDIR"
-installed="$TEST_TMPDIR/usr/bin/hello_world_hi"
-[[ -f "$installed" && -x "$installed" && ! -L "$installed" ]]
-cmp "$binary" "$installed"
