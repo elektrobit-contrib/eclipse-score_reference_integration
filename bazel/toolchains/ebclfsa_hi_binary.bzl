@@ -14,10 +14,9 @@
 """Build and ELF-enable an executable with the EBcLfSA HI toolchain."""
 
 def _ebclfsa_hi_transition_impl(settings, _attr):
-    hi_toolchain = str(Label("//bazel/toolchains:score_ebclfsa_toolchain_hi"))
+    hi_toolchain = str(Label("@score_ebclfsa_hi_toolchain//:aarch64-linux-sdk_2.0.0-beta3-ebclfsa-hi"))
     return {
-        "//command_line_option:platforms": [str(Label("@score_bazel_platforms//:aarch64-linux-sdk_2.0.0-beta3-ebclfsa"))],
-        # Both EB toolchains match this platform; prefer HI only in this subtree.
+        "//command_line_option:platforms": [str(Label("@score_bazel_platforms//:aarch64-linux-sdk_2.0.0-beta3-ebclfsa-hi"))],
         "//command_line_option:extra_toolchains": [
             toolchain
             for toolchain in settings["//command_line_option:extra_toolchains"]
@@ -74,12 +73,12 @@ ebclfsa_hi_binary = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
         "_elf_enabler": attr.label(
-            default = "@score_ebclfsa_toolchain_pkg//:elf-enabler",
+            default = "@score_ebclfsa_hi_toolchain_pkg//:elf-enabler",
             allow_single_file = True,
             cfg = "exec",
         ),
         "_sdk_files": attr.label(
-            default = "@score_ebclfsa_toolchain_pkg//:all_files",
+            default = "@score_ebclfsa_hi_toolchain_pkg//:all_files",
             cfg = "exec",
         ),
     },

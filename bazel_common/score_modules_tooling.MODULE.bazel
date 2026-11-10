@@ -57,7 +57,7 @@ git_override(
 bazel_dep(name = "score_bazel_platforms")
 git_override(
     module_name = "score_bazel_platforms",
-    commit = "081dcf7bdbc94d05bbe354291e13a775dbf8f3e6",
+    commit = "f1b1e388cb3abec915b3bec803d6e4dcbf270d1a",
     remote = "https://github.com/eclipse-score/bazel_platforms.git",
 )
 
@@ -85,6 +85,6 @@ git_override(
 bazel_dep(name = "score_bazel_cpp_toolchains")
 git_override(
     module_name = "score_bazel_cpp_toolchains",
-    commit = "3dd3caa94354e44310172607d5e9223cf914ea76",
+    commit = "93525bca3dc97e2735b82e316fd3eb12c6295ed0",
     remote = "https://github.com/eclipse-score/bazel_cpp_toolchains.git",
 )

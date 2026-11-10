@@ -13,10 +13,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@score_tooling//cpp/libclang:libclang_toolchain.bzl", "libclang_toolchain")
-load(":ebclfsa_hi.bzl", "ebclfsa_hi_toolchain")
 load(":ebclfsa_hi_binary.bzl", "ebclfsa_hi_binary")
-
-ebclfsa_hi_toolchain(name = "score_ebclfsa_toolchain_hi")
 
 cc_binary(
     name = "hello_world_hi",

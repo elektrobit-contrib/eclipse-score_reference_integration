@@ -8,12 +8,12 @@ This cross-compiles the showcases with the EB aarch64 toolchains, packages
 [`//showcases:showcases_pkg_tar`](../../showcases/BUILD) as the `score-showcases`
 arm64 Debian package, and builds a new `fastdev` disk image with KAS/Isar.
 It also builds [`hello_world_hi.cc`](../../bazel/toolchains/hello_world_hi.cc)
-with `//bazel/toolchains:score_ebclfsa_toolchain_hi` and installs the separate
-`score-hello-world-hi` arm64 Debian package. A per-target transition selects
-the HI toolchain for this executable while the showcases retain the regular
-EB toolchains selected by `--config=eb-aarch64`. The HI executable statically
-links the SDK's musl and libc++ runtimes; it needs no glibc or libstdc++ package
-dependencies.
+with the upstream EBcLfSA HI toolchain from `bazel_cpp_toolchains` and installs
+the separate `score-hello-world-hi` arm64 Debian package. A per-target
+transition selects the HI toolchain for this executable while the showcases
+retain the regular EB toolchains selected by `--config=eb-aarch64`. The HI
+executable statically links the SDK's musl and libc++ runtimes; it needs no
+glibc or libstdc++ package dependencies.
 Before packaging, [`ebclfsa_hi_binary`](../../bazel/toolchains/ebclfsa_hi_binary.bzl)
 runs the SDK's `lisa-elf-enabler` on a private copy of the linked executable.
 This marks its ELF header as an HI application without modifying the original

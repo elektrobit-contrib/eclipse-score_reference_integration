@@ -21,6 +21,15 @@ gcc.toolchain(
     use_default_package = True,
 )
 
+gcc.toolchain(
+    name = "score_ebclfsa_hi_toolchain",
+    runtime_ecosystem = "ebclfsa-hi",
+    sdk_version = "2.0.0-beta3",
+    target_cpu = "aarch64",
+    target_os = "linux",
+    use_default_package = True,
+)
+
 ## AutoSD10 Toolchain
 gcc.toolchain(
     name = "score_autosd10_x86_64_toolchain",
@@ -43,5 +52,7 @@ use_repo(
     "score_autosd10_x86_64_toolchain",
     "score_ebclfsa_toolchain",
     "score_ebclfsa_toolchain_pkg",
+    "score_ebclfsa_hi_toolchain",
+    "score_ebclfsa_hi_toolchain_pkg",
     "score_gcc_aarch64_toolchain",
 )
