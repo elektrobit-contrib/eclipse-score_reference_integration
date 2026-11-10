@@ -83,7 +83,7 @@ jobs:
             - .bazelrc
           cache-save: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
       - name: Set up Python 3
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install Graphviz
@@ -131,7 +131,9 @@ jobs:
           merge-multiple: true
       - name: Write unit test and coverage summaries
         # Module unit tests and their coverage come only from module_tests.yml, which runs each
-        # module's own tests against ref_int's resolved dependency versions.
+        # module's own tests against ref_int's resolved dependency versions. The report command
+        # also combines their rebased LCOV into coverage-report/coverage_report.dat, the input
+        # read by docs-as-code when //:docs_shim runs in this workspace below.
         run: python ./scripts/module_tests.py report _module_reports
       - name: Collect test reports for the documentation
         # The source code linker reads tests-report/ instead of bazel-testlogs/ when it exists, so
@@ -155,7 +157,7 @@ jobs:
           zip -r ${{ github.event.repository.name }}_test_reports.zip artifacts/
         shell: bash
       - name: Upload release asset (attach ZIP to GitHub Release)
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.3
         if: github.ref_type == 'tag'
         with:
           files: ${{ github.event.repository.name }}_test_reports.zip
@@ -169,7 +171,7 @@ jobs:
           retention-days: 3
           if-no-files-found: error
       - name: Upload build tools SBOM (attach to GitHub Release)
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.3
         if: github.ref_type == 'tag'
         with:
           files: bazel-bin/build_tools_sbom.spdx.json
@@ -185,6 +187,14 @@ jobs:
 
           CURRENT=$(realpath .)
           bazel run //scripts/tooling -- misc html_report --output ${CURRENT}/_build/status_dashboard.html
+          # Dependable element docs built by module_tests.yml; they cannot be coupled via Bazel, so
+          # they are published next to the main docs (linked from docs/modules/index.rst).
+          for report in _module_reports/*; do
+            [ -d "$report/dependable_element_docs" ] || continue
+            module="${report##*/}"
+            mkdir -p "_build/modules/$module/dependable_element"
+            cp -r "$report/dependable_element_docs/." "_build/modules/$module/dependable_element/"
+          done
           tar -cf github-pages.tar _build
       - name: Upload documentation artifact
         uses: actions/upload-artifact@604373da6381bf24206979c74d06a550515601b9 # v4.4.1

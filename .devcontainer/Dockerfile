@@ -11,16 +11,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-exports_files([
-    "etc/logging.json",
-    "etc/log-channels.json",
-])
-
-filegroup(
-    name = "etc_configs",
-    srcs = [
-        "etc/log-channels.json",
-        "etc/logging.json",
-    ],
-    visibility = ["//visibility:public"],
-)
+# Use Dockerfile to get dependabot version bumps after new image is released
+FROM ghcr.io/eclipse-score/devcontainer:v1.12.0
