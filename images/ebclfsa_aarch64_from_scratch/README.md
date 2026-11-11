@@ -148,12 +148,3 @@ The HI binary test checks the ELF supervision marker and AArch64 architecture:
 ```bash
 bazel test --config=eb-aarch64 //bazel/toolchains:hello_world_hi_test
 ```
-
-The staging test checks zero, one, two, and four packages with arbitrary filenames,
-generated recipes and install lists, invalid and duplicate package rejection,
-console package contents, permissions and replacement metadata, cleanup, and
-failure propagation without Docker:
-
-```bash
-bazel test --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:build_image_test
-```

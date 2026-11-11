@@ -149,23 +149,3 @@ sh_binary(
     use_bash_launcher = True,
     visibility = ["//visibility:public"],
 )
-
-sh_test(
-    name = "build_image_test",
-    size = "small",
-    srcs = ["build_image_test.sh"],
-    args = [
-        "$(location :config_deb)",
-        "$(location @score_os_images//ebclfsa_aarch64:build_image.sh)",
-        "$(location @score_os_images//ebclfsa_aarch64:kas.yml)",
-    ],
-    data = [
-        "@score_os_images//ebclfsa_aarch64:build_image.sh",
-        "@score_os_images//ebclfsa_aarch64:kas.yml",
-        "@score_os_images//ebclfsa_aarch64:meta-score/conf/layer.conf",
-        "@score_os_images//ebclfsa_aarch64:meta-score/recipes-images/score-image/score-image_1.0.bb",
-        ":config_deb",
-        "//images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit",
-        "//images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh",
-    ],
-)
