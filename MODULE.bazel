@@ -62,6 +62,14 @@ filegroup(
     remote = "https://github.com/Elektrobit/eb_corbos_toolkit.git",
 )
 
+# Reuse the EBcLfSA image package targets from os_images.
+bazel_dep(name = "os_images", repo_name = "score_os_images")
+git_override(
+    module_name = "os_images",
+    commit = "4c1d081291efff3b9a25da39f84f094ca877e632",
+    remote = "https://github.com/eclipse-score/os_images.git",
+)
+
 # Single-version locks for the deps Stage 2 collects test artifacts from (GTest, the Rust
 # test rules, the ferrocene coverage tooling). Read after the includes above so it pins the
 # versions they bring in transitively.

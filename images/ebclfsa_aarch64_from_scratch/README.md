@@ -6,7 +6,7 @@ bazel run --config=eb-aarch64 //images/ebclfsa_aarch64_from_scratch:run
 
 This cross-compiles the showcases with the EB aarch64 toolchains, packages
 [`//showcases:showcases_pkg_tar`](../../showcases/BUILD) as the `score-showcases`
-arm64 Debian package, and builds a new `fastdev` disk image with KAS/Isar.
+arm64 Debian package, and builds a new `score-image` disk image with KAS/Isar.
 It also builds [`hello_world_hi.cc`](../../bazel/toolchains/hello_world_hi.cc)
 with the upstream EBcLfSA HI toolchain from `bazel_cpp_toolchains` and installs
 the separate `score-hello-world-hi` arm64 Debian package. A per-target
@@ -21,10 +21,12 @@ This marks its ELF header as an HI application without modifying the original
 `//bazel/toolchains:hello_world_hi_for_image`) to obtain the enabled executable;
 selecting the HI compiler toolchain alone does not enable the ELF header.
 
-The image is assembled from Debian packages using a Git checkout of the
-[EB corbos Toolkit v2.0.0-beta3 tag](https://github.com/Elektrobit/eb_corbos_toolkit/tree/v2.0.0-beta3),
-pinned to its commit in `MODULE.bazel`. Only the KAS configuration, bundled Isar
-layers and development-container setup are copied into the build workspace.
+The image is assembled from Debian packages using the EBcLfSA image recipe,
+KAS configuration, and build script from the pinned
+[`os_images` revision](https://github.com/eclipse-score/os_images/tree/4c1d081291efff3b9a25da39f84f094ca877e632/ebclfsa_aarch64).
+The EB corbos Toolkit v2.0.0-beta3 tag is also pinned in `MODULE.bazel`; only
+its bundled Isar layers and development-container setup are copied into the
+build workspace.
 The large delivery archive, including its prebuilt container and disk images,
 is not downloaded. The build container is pulled separately from GHCR.
 It does **not** boot or modify the toolkit's prebuilt disk image.
@@ -93,12 +95,12 @@ Edit `IMAGE_PACKAGES` in [BUILD](BUILD) to select the Debian package targets
 installed in the image. This list supplies both the Bazel action inputs and the
 script arguments; no package-specific recipes or KAS changes are needed.
 
-The [build script](build_image.sh) accepts zero or more Debian package paths
-after its three fixed arguments:
+The [build script](https://github.com/eclipse-score/os_images/blob/4c1d081291efff3b9a25da39f84f094ca877e632/ebclfsa_aarch64/build_image.sh)
+accepts zero or more Debian package paths after its three fixed arguments:
 
 ```bash
-bash images/ebclfsa_aarch64_from_scratch/build_image.sh \
-  /path/to/toolkit images/ebclfsa_aarch64_from_scratch/kas.yml \
+bash /path/to/os_images/ebclfsa_aarch64/build_image.sh \
+  /path/to/toolkit /path/to/os_images/ebclfsa_aarch64/kas.yml \
   /existing/output/directory \
   /path/to/first.deb "/path/to/another package.deb"
 ```
@@ -118,9 +120,10 @@ from the configured repositories or supplied in the same list.
 ### Network and SSH access
 
 The image uses the same network setup as
-[`ebclfsa_aarch64`](../ebclfsa_aarch64/README.md). The toolkit's `fastdev`
-image already installs the guest network configuration and SSH server, including
-password login for `root`. Both images use the shared
+[`ebclfsa_aarch64`](../ebclfsa_aarch64/README.md). The image includes the
+`score-network-config` and `score-itf-sshd-config` packages from `os_images`;
+together with the image recipe's empty root password, these enable passwordless
+root SSH for integration testing, not production use. Both images use the shared
 [QEMU runner](../../runners/qemu_aarch64/scripts/run_qemu.sh), which configures
 the `192.168.7.0/24` user network and forwards host TCP port `2222` to guest
 port `22`, and host TCP port `3333` to guest port `3333`. The guest uses
@@ -130,13 +133,6 @@ After starting the image, connect from another host terminal:
 
 ```bash
 ssh -p 2222 root@localhost
-# Password: linux
-```
-
-Or, with `sshpass` installed:
-
-```bash
-sshpass -p linux ssh -p 2222 root@localhost
 ```
 
 Only run one image using these host ports at a time. SSH host keys are generated

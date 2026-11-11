@@ -16,6 +16,12 @@ set -euo pipefail
 
 sources="$TEST_SRCDIR/_main/images/ebclfsa_aarch64_from_scratch"
 overlay="$TEST_SRCDIR/_main/images/ebclfsa_aarch64/build/config-overlay"
+[[ $# == 3 ]]
+config_deb=$1
+build_script=$2
+kas_config=$3
+export kas_config
+shift 3
 fixture="$TEST_TMPDIR/fixture"
 output="$TEST_TMPDIR/output"
 mkdir -p "$fixture/"{kas,layers/isar,.devcontainer,prebuilt} "$output"
@@ -70,25 +76,25 @@ docker() {
         count=$((count + 1))
     done
     [[ $(find "$work/meta-score" -name '*.deb' | wc -l) -eq $count ]]
-    [[ $(find "$work/meta-score" -name '*.bb' | wc -l) -eq $count ]]
+    [[ $(find "$work/meta-score" -name '*.bb' | wc -l) -eq $((count + 1)) ]]
     grep -Fxq "    IMAGE_INSTALL:append = \" $EXPECTED_PACKAGE_NAMES\"" "$work/kas/score-packages.yml"
-    cmp "$TEST_SRCDIR/_main/images/ebclfsa_aarch64_from_scratch/kas.yml" "$work/kas/score.yml"
+    cmp "$kas_config" "$work/kas/score.yml"
     [[ ! -e "$work/meta-score/recipes-crinit/fastdev/files" ]]
     if [[ ${MOCK_DOCKER_FAIL:-0} == 1 ]]; then
         return 17
     fi
     deploy="$work/build/tmp/deploy/images/ebcl-qemuarm64"
     mkdir -p "$deploy"
-    echo kernel > "$deploy/fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux"
+    echo kernel > "$deploy/score-image-trixie-ebclfsa-ebcl-qemuarm64-vmlinux"
     if [[ ${MOCK_MISSING_IMAGE:-0} != 1 ]]; then
-        echo disk > "$deploy/fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic"
+        echo disk > "$deploy/score-image-trixie-ebclfsa-ebcl-qemuarm64.wic"
     fi
 }
 export -f docker
 
 build_image() {
-    bash "$sources/build_image.sh" "$fixture" \
-        "$sources/kas.yml" "$output" "$@"
+    bash "$build_script" "$fixture" \
+        "$kas_config" "$output" "$@"
 }
 
 for count in 0 1 2 4; do
@@ -97,10 +103,9 @@ for count in 0 1 2 4; do
 done
 
 installed="$TEST_TMPDIR/installed"
-[[ $# == 1 ]]
-[[ $(dpkg-deb --field "$1" Package) == config-deb ]]
+[[ $(dpkg-deb --field "$config_deb" Package) == config-deb ]]
 mkdir -p "$installed"
-for deb in "$@"; do
+for deb in "$config_deb"; do
     name=$(dpkg-deb --field "$deb" Package)
     [[ $(dpkg-deb --field "$deb" Architecture) == all ]]
     mkdir -p "$TEST_TMPDIR/packages/$name"
@@ -111,17 +116,17 @@ cmp "$overlay/etc/crinit/crinit.d/getty-console.crinit" "$installed/etc/crinit/c
 cmp "$overlay/usr/bin/delayed-start.sh" "$installed/usr/bin/delayed-start.sh"
 [[ $(stat -c %a "$installed/etc/crinit/crinit.d/getty-console.crinit") == 644 ]]
 [[ $(stat -c %a "$installed/usr/bin/delayed-start.sh") == 755 ]]
-[[ $(dpkg-deb --field "$1" Replaces) == ebclfsa-fastdev-crinit-getty ]]
-[[ $(dpkg-deb --field "$1" Depends) == ebclfsa-fastdev-crinit-getty ]]
-dpkg-deb --control "$1" "$TEST_TMPDIR/getty-control"
+[[ $(dpkg-deb --field "$config_deb" Replaces) == ebclfsa-fastdev-crinit-getty ]]
+[[ $(dpkg-deb --field "$config_deb" Depends) == ebclfsa-fastdev-crinit-getty ]]
+dpkg-deb --control "$config_deb" "$TEST_TMPDIR/getty-control"
 grep -Fxq /etc/crinit/crinit.d/getty-console.crinit "$TEST_TMPDIR/getty-control/conffiles"
 export EXPECTED_PACKAGE_NAMES="config-deb"
-build_image "$@"
+build_image "$config_deb"
 
 [[ ! -e "$fixture/kas/score.yml" ]]
 [[ ! -e "$fixture/meta-score" ]]
-[[ $(cat "$output/fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux") == kernel ]]
-[[ $(cat "$output/fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic") == disk ]]
+[[ $(cat "$output/score-image-trixie-ebclfsa-ebcl-qemuarm64-vmlinux") == kernel ]]
+[[ $(cat "$output/score-image-trixie-ebclfsa-ebcl-qemuarm64.wic") == disk ]]
 
 expect_rejected_package() {
     rm -f "$TEST_TMPDIR/docker-ran"

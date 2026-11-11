@@ -18,6 +18,8 @@ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 IMAGE_PACKAGES = [
+    "@score_os_images//ebclfsa_aarch64:sshd_config_deb",
+    "@score_os_images//ebclfsa_aarch64:network_config_deb",
     ":showcases_deb",
     ":hello_world_hi_deb",
     ":config_deb",
@@ -108,22 +110,24 @@ pkg_deb(
 genrule(
     name = "image",
     srcs = [
-        "kas.yml",
+        "@score_os_images//ebclfsa_aarch64:kas.yml",
+        "@score_os_images//ebclfsa_aarch64:meta-score/conf/layer.conf",
+        "@score_os_images//ebclfsa_aarch64:meta-score/recipes-images/score-image/score-image_1.0.bb",
         "@eb_corbos_toolkit//:BUILD.bazel",
         "@eb_corbos_toolkit//:sources",
-    ] + IMAGE_PACKAGES + glob(["meta-score/**"]),
+    ] + IMAGE_PACKAGES,
     outs = [
-        "fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux",
-        "fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic",
+        "score-image-trixie-ebclfsa-ebcl-qemuarm64-vmlinux",
+        "score-image-trixie-ebclfsa-ebcl-qemuarm64.wic",
     ],
-    cmd = "bash $(location build_image.sh) " +
+    cmd = "bash $(location @score_os_images//ebclfsa_aarch64:build_image.sh) " +
           "$$(dirname $(location @eb_corbos_toolkit//:BUILD.bazel)) " +
-          "$(location kas.yml) " +
+          "$(location @score_os_images//ebclfsa_aarch64:kas.yml) " +
           "$(RULEDIR) " +
           " ".join(["\"$(location %s)\"" % package for package in IMAGE_PACKAGES]),
     local = True,
     tags = ["manual"],
-    tools = ["build_image.sh"],
+    tools = ["@score_os_images//ebclfsa_aarch64:build_image.sh"],
     visibility = ["//visibility:public"],
 )
 
@@ -131,15 +135,15 @@ sh_binary(
     name = "run",
     srcs = ["//runners/qemu_aarch64/scripts:run_qemu.sh"],
     args = [
-        "$(location :fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux)",
-        "$(location :fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic)",
+        "$(location :score-image-trixie-ebclfsa-ebcl-qemuarm64-vmlinux)",
+        "$(location :score-image-trixie-ebclfsa-ebcl-qemuarm64.wic)",
         "-append",
         "'root=/dev/vda1 sdk_enable lisa_syscall_whitelist=2026 rw sharedmem.enable_sharedmem=0 init=/usr/bin/ebclfsa-cflinit'",
         "-snapshot",
     ],
     data = [
-        ":fastdev-trixie-ebclfsa-ebcl-qemuarm64.wic",
-        ":fastdev-trixie-ebclfsa-ebcl-qemuarm64-vmlinux",
+        ":score-image-trixie-ebclfsa-ebcl-qemuarm64.wic",
+        ":score-image-trixie-ebclfsa-ebcl-qemuarm64-vmlinux",
     ],
     tags = ["manual"],
     use_bash_launcher = True,
@@ -152,12 +156,16 @@ sh_test(
     srcs = ["build_image_test.sh"],
     args = [
         "$(location :config_deb)",
+        "$(location @score_os_images//ebclfsa_aarch64:build_image.sh)",
+        "$(location @score_os_images//ebclfsa_aarch64:kas.yml)",
     ],
     data = [
-        "build_image.sh",
-        "kas.yml",
+        "@score_os_images//ebclfsa_aarch64:build_image.sh",
+        "@score_os_images//ebclfsa_aarch64:kas.yml",
+        "@score_os_images//ebclfsa_aarch64:meta-score/conf/layer.conf",
+        "@score_os_images//ebclfsa_aarch64:meta-score/recipes-images/score-image/score-image_1.0.bb",
         ":config_deb",
         "//images/ebclfsa_aarch64/build/config-overlay:etc/crinit/crinit.d/getty-console.crinit",
         "//images/ebclfsa_aarch64/build/config-overlay:usr/bin/delayed-start.sh",
-    ] + glob(["meta-score/**"]),
+    ],
 )
