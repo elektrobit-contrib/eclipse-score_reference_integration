@@ -66,7 +66,7 @@ filegroup(
 bazel_dep(name = "os_images", repo_name = "score_os_images")
 git_override(
     module_name = "os_images",
-    commit = "4c1d081291efff3b9a25da39f84f094ca877e632",
+    commit = "aead080d0d2a41f05788da4688728892be90461d",
     remote = "https://github.com/eclipse-score/os_images.git",
 )
 
