@@ -22,6 +22,8 @@ single_version_override(
         "//patches/baselibs:001-restore-trace-library-mock-visibility.patch",
         "//patches/baselibs:002-restore-qnx8-poll-workaround.patch",
         "//patches/baselibs:003-export-aou-requirements.patch",
+        # This patch is needed for `--config "eb-aarch64"` because it sets `--as-needed` globally.
+        "//patches/baselibs:007-link-recorder-factory-with-frontend.patch",
     ],
     version = "0.2.19",
 )
@@ -67,6 +69,7 @@ git_override(
         "//patches/lifecycle:005-bazel-cpp-toolchains-1.1-qnx-sdp-pkg.patch",
         "//patches/lifecycle:006-undev-cpp-policies.patch",
         "//patches/lifecycle:007-integration-image-without-sanitizer-runtimes.patch",
+        "//patches/lifecycle:001-google-benchmark-not-dev-dependency.patch",
     ],
     remote = "https://github.com/eclipse-score/lifecycle.git",
 )
@@ -107,4 +110,11 @@ single_version_override(
         "//patches/config_management:006-config-daemon-remote-logging.patch",
     ],
     version = "0.3.5",
+)
+
+bazel_dep(name = "score_someip_gateway")
+git_override(
+    module_name = "score_someip_gateway",
+    commit = "1415cae95b801d3cb254d5d0b60d5bfcd5bf067a",
+    remote = "https://github.com/eclipse-score/inc_someip_gateway.git",
 )

@@ -17,6 +17,8 @@
 unified_gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
 unified_gcc.toolchain(
     name = "unified_gcc_x86_64_toolchain",
+    # required to compile pkg-config, even when cross compilation has been selected
+    extra_c_compile_flags = ["-std=gnu11"],
     target_cpu = "x86_64",
     target_os = "linux",
     use_default_package = True,

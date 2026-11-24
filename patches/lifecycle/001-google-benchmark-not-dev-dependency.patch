@@ -1,0 +1,6 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -29 +29 @@
+-bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
++bazel_dep(name = "google_benchmark", version = "1.9.5")
