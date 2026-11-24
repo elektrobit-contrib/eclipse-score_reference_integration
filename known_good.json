@@ -6,7 +6,8 @@
                 "bazel_patches": [
                     "//patches/baselibs:001-restore-trace-library-mock-visibility.patch",
                     "//patches/baselibs:002-restore-qnx8-poll-workaround.patch",
-                    "//patches/baselibs:003-export-aou-requirements.patch"
+                    "//patches/baselibs:003-export-aou-requirements.patch",
+                    "//patches/baselibs:007-link-recorder-factory-with-frontend.patch"
                 ],
                 "metadata": {
                     "code_root_path": "//score/...",
@@ -132,7 +133,8 @@
                     "//patches/lifecycle:003-dev-only-codeql-pip-hub.patch",
                     "//patches/lifecycle:005-bazel-cpp-toolchains-1.1-qnx-sdp-pkg.patch",
                     "//patches/lifecycle:006-undev-cpp-policies.patch",
-                    "//patches/lifecycle:007-integration-image-without-sanitizer-runtimes.patch"
+                    "//patches/lifecycle:007-integration-image-without-sanitizer-runtimes.patch",
+                    "//patches/lifecycle:001-google-benchmark-not-dev-dependency.patch"
                 ],
                 "metadata": {
                     "code_root_path": "//score/...",
@@ -268,6 +270,20 @@
                         "//score/config_management/config_provider/code/proxies/details:unit_test_mw",
                         "//tests/cpp:cpp_test_main"
                     ]
+                }
+            },
+            "score_someip_gateway": {
+                "repo": "https://github.com/eclipse-score/inc_someip_gateway.git",
+                "docs": false,
+                "hash": "1415cae95b801d3cb254d5d0b60d5bfcd5bf067a",
+                "metadata": {
+                    "code_root_path": "//score/...",
+                    "extra_test_config": [],
+                    "exclude_test_targets": [],
+                    "langs": [
+                        "cpp"
+                    ],
+                    "rust_coverage_config": "ferrocene-coverage"
                 }
             }
         },
